@@ -34,9 +34,17 @@ recommendations.
 
 1. Create a new project at [supabase.com](https://supabase.com).
 2. Open the SQL Editor and run the contents of [`supabase/schema.sql`](supabase/schema.sql).
-3. In **Authentication → Providers**, enable Email. For local dev, turn off
-   "Confirm email" so magic links work out of the box.
-4. In **Authentication → URL Configuration**, add redirect URLs:
+3. In **Authentication → Providers → Email**, make sure the Email provider
+   is enabled. You can ignore the "Confirm email" setting — it's a
+   password-flow option and doesn't affect magic links (the link itself *is*
+   the confirmation).
+4. Because this is a two-person app, **turn off public signups** so random
+   people can't log in by typing an email. Go to **Authentication → Sign In
+   / Providers** (or **Settings → Authentication** depending on dashboard
+   version) and disable **"Allow new users to sign up"**. Then add your two
+   accounts manually in **Authentication → Users → Add user → Send invite**
+   (or "Create new user" with auto-confirm).
+5. In **Authentication → URL Configuration**, add redirect URLs:
    - `http://localhost:3000/auth/callback`
    - `https://<your-production-domain>/auth/callback`
 
