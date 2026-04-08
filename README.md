@@ -45,7 +45,7 @@ recommendations.
    accounts manually in **Authentication → Users → Add user → Send invite**
    (or "Create new user" with auto-confirm).
 5. In **Authentication → URL Configuration**, add redirect URLs:
-   - `http://localhost:3000/auth/callback`
+   - `http://localhost:4141/auth/callback`
    - `https://<your-production-domain>/auth/callback`
 
 ### 2. TMDB
@@ -63,7 +63,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 TMDB_API_KEY=
 CRON_SECRET=          # any long random string
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=http://localhost:4141
 ```
 
 ### 4. Run
@@ -73,7 +73,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:4141](http://localhost:4141).
 
 ## Deploying to Vercel
 
@@ -90,7 +90,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ```
 curl -H "Authorization: Bearer $CRON_SECRET" \
-  http://localhost:3000/api/cron/refresh
+  http://localhost:4141/api/cron/refresh
 ```
 
 Returns `{ ok, refreshed, failed }`.
