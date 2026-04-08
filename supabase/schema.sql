@@ -1,6 +1,7 @@
 -- Show Tracker schema.
 -- Run this once in the Supabase SQL Editor for a fresh project.
--- Safe to re-run: uses IF NOT EXISTS / CREATE OR REPLACE where possible.
+-- Safe to re-run: uses IF NOT EXISTS / CREATE OR REPLACE where possible,
+-- and includes a migration block at the bottom for existing installs.
 
 create extension if not exists "pgcrypto";
 
@@ -66,7 +67,9 @@ create table if not exists public.shows (
   last_air_date date,                           -- denormalized from last_episode.air_date
   archived boolean not null default false,
   last_refreshed_at timestamptz not null default now(),
-  added_by uuid references auth.users(id) on delete set null,
+  -- FK points at profiles (not auth.users) so PostgREST can embed the display
+  -- name. Every auth user has a profile via handle_new_user().
+  added_by uuid references public.profiles(id) on delete set null,
   created_at timestamptz not null default now()
 );
 
@@ -133,3 +136,33 @@ create policy "recs delete"
   on public.recommendations for delete
   to authenticated
   using (true);
+
+-- ---------- migration: fix shows.added_by FK ----------
+-- Existing installs had shows.added_by -> auth.users(id). PostgREST can't
+-- embed profiles through that because auth.users isn't exposed via the API.
+-- Repoint the FK at public.profiles(id). No-op on fresh installs.
+do $$
+declare
+  fk_target text;
+begin
+  select ccu.table_schema || '.' || ccu.table_name
+    into fk_target
+  from information_schema.table_constraints tc
+  join information_schema.constraint_column_usage ccu
+    on tc.constraint_name = ccu.constraint_name
+   and tc.table_schema = ccu.constraint_schema
+  where tc.table_schema = 'public'
+    and tc.table_name = 'shows'
+    and tc.constraint_type = 'FOREIGN KEY'
+    and tc.constraint_name = 'shows_added_by_fkey';
+
+  if fk_target = 'auth.users' then
+    alter table public.shows drop constraint shows_added_by_fkey;
+    alter table public.shows
+      add constraint shows_added_by_fkey
+      foreign key (added_by) references public.profiles(id) on delete set null;
+  end if;
+end$$;
+
+-- Force PostgREST to pick up the new relationship immediately.
+notify pgrst, 'reload schema';
