@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useState, useEffect, useRef, useTransition } from "react";
 import {
   publicSearchShows,
@@ -272,11 +271,6 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
         {submitting ? "Sending…" : "Send recommendation"}
       </button>
       {error && <p className="text-sm text-[color:var(--danger)]">{error}</p>}
-      <p className="text-[10px] text-[color:var(--muted)] text-center">
-        <Link href="/login" className="underline hover:text-[color:var(--foreground)]">
-          Tracker sign-in
-        </Link>
-      </p>
     </form>
   );
 }

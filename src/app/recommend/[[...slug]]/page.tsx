@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getPublicWatchlist } from "@/lib/shows/public-queries";
 import { PublicWatchlist } from "@/components/PublicWatchlist";
 import { RecommendForm } from "../RecommendForm";
@@ -25,7 +26,13 @@ export default async function RecommendPage({ params }: PageProps) {
   const watchlist = await getPublicWatchlist();
 
   return (
-    <main className="min-h-screen flex items-start justify-center p-6 sm:p-8">
+    <main className="min-h-screen flex items-start justify-center p-6 sm:p-8 relative">
+      <Link
+        href="/login"
+        className="absolute top-6 right-6 sm:top-8 sm:right-8 text-sm text-[color:var(--muted)] hover:text-[color:var(--foreground)] transition-colors"
+      >
+        Log in
+      </Link>
       <div className="w-full max-w-xl mt-8">
         <h1 className="text-2xl font-semibold">Recommend a show</h1>
         <p className="text-sm text-[color:var(--muted)] mt-1 mb-6">
