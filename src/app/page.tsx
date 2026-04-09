@@ -9,6 +9,7 @@ import { ShowGrid } from "@/components/ShowGrid";
 import { RecommendationCard } from "@/components/RecommendationCard";
 import { RefreshNowButton } from "@/components/RefreshNowButton";
 import { SignOutButton } from "@/components/SignOutButton";
+import { Logo } from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +25,7 @@ export default async function DashboardPage() {
     <main className="min-h-screen max-w-7xl mx-auto p-6 sm:p-8">
       <header className="flex items-center justify-between mb-10 flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            <span className="text-[color:var(--accent)]">Show</span> Tracker
-          </h1>
+          <h1><Logo /></h1>
           <p className="text-sm text-[color:var(--muted)]">
             What we&apos;re watching.
           </p>

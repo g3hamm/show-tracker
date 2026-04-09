@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Graphique";
+  src: url("/fonts/GraphiqueW01-Regular.woff2") format("woff2"),
+       url("/fonts/GraphiqueW01-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: #141414;
   --foreground: #e5e5e5;

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SearchBox } from "./SearchBox";
 
 export const metadata = {
-  title: "Add a show · Show Tracker",
+  title: "Add a show · HAMMFLIX",
 };
 
 export default function SearchPage() {

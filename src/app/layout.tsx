@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Show Tracker",
+  title: "HAMMFLIX",
   description:
     "Track the TV shows we're watching and get notified when new episodes drop.",
 };
