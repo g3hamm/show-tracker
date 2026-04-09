@@ -6,6 +6,7 @@ import { tmdbPoster } from "@/lib/tmdb/client";
 import { formatShortDate, relativeDay } from "@/lib/dates";
 import { RemoveShowButton } from "@/components/RemoveShowButton";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
+import { EpisodeProgressForm } from "@/components/EpisodeProgressForm";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +71,14 @@ export default async function ShowDetailPage({ params }: PageProps) {
               episode={show.next_episode}
               date={show.next_air_date}
               emptyText="No upcoming episode scheduled."
+            />
+          </div>
+
+          <div className="mt-6">
+            <EpisodeProgressForm
+              showId={show.id}
+              currentSeason={show.current_season}
+              currentEpisode={show.current_episode}
             />
           </div>
 

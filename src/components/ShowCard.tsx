@@ -30,6 +30,11 @@ export function ShowCard({ show, badge }: ShowCardProps) {
     subline = ep
       ? `S${ep.season_number}E${ep.episode_number} · ${relativeDay(show.next_air_date, today)}`
       : relativeDay(show.next_air_date, today);
+  } else if (show.current_season != null && show.current_episode != null) {
+    subline = `On S${show.current_season}E${show.current_episode}`;
+    if (show.next_air_date) {
+      subline += ` · Next: ${formatShortDate(show.next_air_date)}`;
+    }
   } else if (show.next_air_date) {
     subline = `Next: ${formatShortDate(show.next_air_date)}`;
   } else if (show.status) {

@@ -65,6 +65,8 @@ create table if not exists public.shows (
   last_episode jsonb,
   next_air_date date,                           -- denormalized from next_episode.air_date
   last_air_date date,                           -- denormalized from last_episode.air_date
+  current_season integer,                    -- episode progress: which season the user is on
+  current_episode integer,                   -- episode progress: which episode the user is on
   archived boolean not null default false,
   last_refreshed_at timestamptz not null default now(),
   -- FK points at profiles (not auth.users) so PostgREST can embed the display
@@ -161,6 +163,19 @@ begin
     alter table public.shows
       add constraint shows_added_by_fkey
       foreign key (added_by) references public.profiles(id) on delete set null;
+  end if;
+end$$;
+
+-- ---------- migration: add episode progress columns ----------
+-- Safe to re-run: uses IF NOT EXISTS via DO block.
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'shows' and column_name = 'current_season'
+  ) then
+    alter table public.shows add column current_season integer;
+    alter table public.shows add column current_episode integer;
   end if;
 end$$;
 

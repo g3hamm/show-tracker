@@ -15,6 +15,8 @@ export interface ShowRow {
   last_episode: TmdbEpisode | null;
   next_air_date: string | null;
   last_air_date: string | null;
+  current_season: number | null;
+  current_episode: number | null;
   archived: boolean;
   last_refreshed_at: string;
   added_by: string | null;

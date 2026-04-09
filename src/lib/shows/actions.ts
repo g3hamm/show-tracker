@@ -120,6 +120,21 @@ export async function refreshAllWithClient(
   return { refreshed, failed };
 }
 
+export async function updateProgress(
+  id: string,
+  season: number | null,
+  episode: number | null,
+): Promise<void> {
+  const { supabase } = await requireUser();
+  const { error } = await supabase
+    .from("shows")
+    .update({ current_season: season, current_episode: episode })
+    .eq("id", id);
+  if (error) throw error;
+  revalidatePath("/");
+  revalidatePath(`/show/${id}`);
+}
+
 export async function refreshAll(): Promise<{ refreshed: number; failed: number }> {
   await requireUser();
   // Use the admin client so one user click updates everyone's shared list

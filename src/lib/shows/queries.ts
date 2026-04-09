@@ -21,6 +21,8 @@ const SHOWS_SELECT = `
   last_episode,
   next_air_date,
   last_air_date,
+  current_season,
+  current_episode,
   archived,
   last_refreshed_at,
   added_by,

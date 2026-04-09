@@ -163,6 +163,27 @@ export async function submitRecommendation(
   return { ok: true };
 }
 
+// --- Public: get tracked/watched TMDB IDs (for "watched" overlay) ---
+
+export interface TrackedShowInfo {
+  tmdbId: number;
+  archived: boolean;
+}
+
+export async function getTrackedShowsPublic(): Promise<TrackedShowInfo[]> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("shows")
+    .select("tmdb_id, archived")
+    .eq("media_type", "show")
+    .not("tmdb_id", "is", null);
+  if (error) throw error;
+  return (data ?? []).map((r: { tmdb_id: number; archived: boolean }) => ({
+    tmdbId: r.tmdb_id,
+    archived: r.archived,
+  }));
+}
+
 // --- Dismiss (authenticated) ---
 
 export async function dismissRecommendation(id: string): Promise<void> {
