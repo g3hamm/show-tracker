@@ -44,7 +44,7 @@ export default async function ShowDetailPage({ params }: PageProps) {
         </div>
 
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold">{show.name}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{show.name}</h1>
           <div className="flex gap-3 text-xs text-[color:var(--muted)] mt-1 flex-wrap">
             {show.first_air_date && (
               <span>First aired {show.first_air_date.slice(0, 4)}</span>

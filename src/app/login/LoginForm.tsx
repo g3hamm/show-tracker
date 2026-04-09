@@ -43,7 +43,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="px-4 py-3 rounded-md bg-[color:var(--accent)] text-black font-medium disabled:opacity-60"
+        className="px-4 py-3 rounded bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold disabled:opacity-60 transition-colors"
       >
         {pending ? "Sending…" : "Send magic link"}
       </button>

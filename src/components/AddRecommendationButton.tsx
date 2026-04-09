@@ -33,7 +33,7 @@ export function AddRecommendationButton({
         type="button"
         onClick={onClick}
         disabled={pending}
-        className="text-[11px] px-2 py-1 rounded bg-[color:var(--accent)]/20 hover:bg-[color:var(--accent)]/30 border border-[color:var(--accent)]/50 text-[color:var(--accent)] transition-colors"
+        className="text-[11px] px-2 py-1 rounded bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold transition-colors"
       >
         {pending ? "Adding…" : "Add to tracker"}
       </button>

@@ -99,7 +99,7 @@ export function SearchBox() {
                 type="button"
                 onClick={() => onAdd(r.tmdbId)}
                 disabled={adding || isAdded}
-                className="self-start px-3 py-1.5 rounded text-sm bg-[color:var(--accent)] text-black font-medium disabled:opacity-60"
+                className="self-start px-3 py-1.5 rounded text-sm bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold disabled:opacity-60 transition-colors"
               >
                 {isAdded ? "Added" : adding ? "…" : "Add"}
               </button>

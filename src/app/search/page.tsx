@@ -15,7 +15,7 @@ export default function SearchPage() {
         >
           ← Dashboard
         </Link>
-        <h1 className="text-2xl font-semibold mt-2">Add a show</h1>
+        <h1 className="text-2xl font-bold tracking-tight mt-2">Add a show</h1>
         <p className="text-sm text-[color:var(--muted)]">
           Search TMDB and add it to the shared tracker.
         </p>

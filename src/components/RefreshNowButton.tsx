@@ -29,7 +29,7 @@ export function RefreshNowButton() {
         type="button"
         onClick={onClick}
         disabled={pending}
-        className="px-3 py-1.5 rounded-md text-sm bg-[color:var(--surface-elevated)] border border-[color:var(--border)] hover:border-[color:var(--accent)] transition-colors disabled:opacity-60"
+        className="px-3 py-1.5 rounded text-sm bg-[color:var(--surface-elevated)] hover:bg-[color:var(--border)] transition-colors disabled:opacity-60"
       >
         {pending ? "Refreshing…" : "Refresh now"}
       </button>

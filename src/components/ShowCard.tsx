@@ -42,7 +42,7 @@ export function ShowCard({ show, badge }: ShowCardProps) {
   }
 
   return (
-    <div className="group relative flex flex-col rounded-lg overflow-hidden bg-[color:var(--surface)] border border-[color:var(--border)] hover:border-[color:var(--accent)]/60 transition-colors">
+    <div className="group relative flex flex-col rounded overflow-hidden bg-[color:var(--surface)] border border-transparent hover:scale-105 hover:shadow-xl hover:shadow-black/50 hover:z-10 transition-all duration-200">
       <Link href={`/show/${show.id}`} className="block">
         <div className="aspect-[2/3] relative bg-[color:var(--surface-elevated)]">
           {poster ? (
@@ -63,8 +63,8 @@ export function ShowCard({ show, badge }: ShowCardProps) {
               className={
                 "absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider " +
                 (badge === "new"
-                  ? "bg-emerald-500 text-black"
-                  : "bg-[color:var(--accent)] text-black")
+                  ? "bg-[color:var(--accent)] text-white"
+                  : "bg-amber-500 text-black")
               }
             >
               {badgeText}

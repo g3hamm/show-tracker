@@ -25,7 +25,7 @@ export function ArchiveToggle({
       type="button"
       onClick={onClick}
       disabled={pending}
-      className="flex-1 text-[11px] py-1 rounded bg-[color:var(--surface-elevated)] hover:bg-[color:var(--accent)]/20 border border-[color:var(--border)] hover:border-[color:var(--accent)]/50 transition-colors"
+      className="flex-1 text-[11px] py-1 rounded bg-[color:var(--surface-elevated)] hover:bg-[color:var(--border)] border border-[color:var(--border)] transition-colors"
     >
       {pending ? "…" : archived ? "Unarchive" : "Finish"}
     </button>

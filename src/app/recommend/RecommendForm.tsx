@@ -266,7 +266,7 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
       <button
         type="submit"
         disabled={submitting}
-        className="px-4 py-3 rounded-md bg-[color:var(--accent)] text-black font-medium disabled:opacity-60"
+        className="px-4 py-3 rounded bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold disabled:opacity-60 transition-colors"
       >
         {submitting ? "Sending…" : "Send recommendation"}
       </button>

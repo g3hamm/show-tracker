@@ -22,9 +22,11 @@ export default async function DashboardPage() {
 
   return (
     <main className="min-h-screen max-w-7xl mx-auto p-6 sm:p-8">
-      <header className="flex items-center justify-between mb-8 flex-wrap gap-3">
+      <header className="flex items-center justify-between mb-10 flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Show Tracker</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            <span className="text-[color:var(--accent)]">Show</span> Tracker
+          </h1>
           <p className="text-sm text-[color:var(--muted)]">
             What we&apos;re watching.
           </p>
@@ -32,13 +34,13 @@ export default async function DashboardPage() {
         <nav className="flex items-center gap-3 text-sm">
           <Link
             href="/search"
-            className="px-3 py-1.5 rounded-md bg-[color:var(--accent)] text-black font-medium"
+            className="px-4 py-2 rounded bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold transition-colors"
           >
             + Add show
           </Link>
           <Link
             href="/recommend"
-            className="px-3 py-1.5 rounded-md bg-[color:var(--surface-elevated)] border border-[color:var(--border)] hover:border-[color:var(--accent)] transition-colors"
+            className="px-4 py-2 rounded bg-[color:var(--surface-elevated)] hover:bg-[color:var(--border)] text-[color:var(--foreground)] transition-colors"
           >
             Share link
           </Link>
@@ -120,9 +122,9 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mb-10">
+    <section className="mb-12">
       <div className="mb-4">
-        <h2 className="text-lg font-semibold">{title}</h2>
+        <h2 className="text-xl font-bold">{title}</h2>
         {subtitle && (
           <p className="text-xs text-[color:var(--muted)]">{subtitle}</p>
         )}

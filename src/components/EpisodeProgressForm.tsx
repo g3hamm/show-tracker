@@ -77,7 +77,7 @@ export function EpisodeProgressForm({
           type="button"
           onClick={onSave}
           disabled={pending || !isDirty}
-          className="px-3 py-1.5 text-xs rounded-md bg-[color:var(--accent)] text-black font-medium disabled:opacity-40"
+          className="px-3 py-1.5 text-xs rounded bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold disabled:opacity-40 transition-colors"
         >
           {pending ? "Saving…" : "Save"}
         </button>
@@ -86,7 +86,7 @@ export function EpisodeProgressForm({
             type="button"
             onClick={onClear}
             disabled={pending}
-            className="px-3 py-1.5 text-xs rounded-md bg-[color:var(--surface-elevated)] border border-[color:var(--border)] hover:border-[color:var(--accent)] disabled:opacity-40"
+            className="px-3 py-1.5 text-xs rounded bg-[color:var(--surface-elevated)] hover:bg-[color:var(--border)] border border-[color:var(--border)] disabled:opacity-40 transition-colors"
           >
             Clear
           </button>
