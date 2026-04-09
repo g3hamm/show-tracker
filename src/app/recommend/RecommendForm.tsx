@@ -12,8 +12,12 @@ import {
 } from "@/lib/recommendations/actions";
 import { tmdbPoster } from "@/lib/tmdb/client";
 
-export function RecommendForm() {
-  const [name, setName] = useState("");
+interface RecommendFormProps {
+  defaultName?: string;
+}
+
+export function RecommendForm({ defaultName }: RecommendFormProps) {
+  const [name, setName] = useState(defaultName ?? "");
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
   const [website, setWebsite] = useState(""); // honeypot

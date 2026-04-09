@@ -1,6 +1,6 @@
 import { getPublicWatchlist } from "@/lib/shows/public-queries";
 import { PublicWatchlist } from "@/components/PublicWatchlist";
-import { RecommendForm } from "./RecommendForm";
+import { RecommendForm } from "../RecommendForm";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +8,20 @@ export const metadata = {
   title: "Recommend a show",
 };
 
-export default async function RecommendPage() {
+function toProperCase(slug: string): string {
+  return slug
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+}
+
+interface PageProps {
+  params: Promise<{ slug?: string[] }>;
+}
+
+export default async function RecommendPage({ params }: PageProps) {
+  const { slug } = await params;
+  const defaultName = slug?.[0] ? toProperCase(slug[0]) : undefined;
   const watchlist = await getPublicWatchlist();
 
   return (
@@ -22,7 +35,7 @@ export default async function RecommendPage() {
 
         <PublicWatchlist shows={watchlist} />
 
-        <RecommendForm />
+        <RecommendForm defaultName={defaultName} />
       </div>
     </main>
   );
