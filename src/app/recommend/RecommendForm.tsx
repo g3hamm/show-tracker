@@ -148,10 +148,11 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
           type="text"
           required
           maxLength={60}
+          readOnly={!!defaultName}
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Alex"
-          className="w-full px-4 py-3 rounded-md bg-[color:var(--surface)] border border-[color:var(--border)] focus:outline-none focus:border-[color:var(--accent)]"
+          className={`w-full px-4 py-3 rounded-md bg-[color:var(--surface)] border border-[color:var(--border)] focus:outline-none focus:border-[color:var(--accent)]${defaultName ? " opacity-70 cursor-not-allowed" : ""}`}
         />
       </div>
 
