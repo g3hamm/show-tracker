@@ -121,7 +121,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mb-12">
+    <section className="mb-12 last:mb-0">
       <div className="mb-4">
         <h2 className="text-xl font-bold">{title}</h2>
         {subtitle && (

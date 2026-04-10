@@ -1,7 +1,4 @@
-"use client";
-
 import Image from "next/image";
-import { useRef, useEffect, useCallback } from "react";
 import type { PublicShowRow } from "@/lib/shows/public-queries";
 import { tmdbPoster } from "@/lib/tmdb/client";
 
@@ -10,43 +7,6 @@ interface PublicWatchlistProps {
 }
 
 export function PublicWatchlist({ shows }: PublicWatchlistProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number>(0);
-
-  const updateStyles = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const scrollCenter = el.scrollLeft + el.clientWidth / 2;
-    const cards = el.children;
-    for (let i = 0; i < cards.length; i++) {
-      const card = cards[i] as HTMLElement;
-      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-      const dist = Math.abs(scrollCenter - cardCenter);
-      const maxDist = el.clientWidth / 2;
-      const ratio = Math.min(dist / maxDist, 1);
-      const scale = 1.08 - ratio * 0.2;
-      const opacity = 1 - ratio * 0.4;
-      card.style.transform = `scale(${scale})`;
-      card.style.opacity = `${opacity}`;
-    }
-  }, []);
-
-  const onScroll = useCallback(() => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(updateStyles);
-  }, [updateStyles]);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.addEventListener("scroll", onScroll, { passive: true });
-    updateStyles();
-    return () => {
-      el.removeEventListener("scroll", onScroll);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [onScroll, updateStyles, shows]);
-
   if (shows.length === 0) return null;
 
   return (
@@ -56,9 +16,12 @@ export function PublicWatchlist({ shows }: PublicWatchlistProps) {
         Here&apos;s what we&apos;re watching right now.
       </p>
       <div
-        ref={scrollRef}
-        className="flex items-start gap-3 overflow-x-auto py-4 scrollbar-thin"
-        style={{ paddingLeft: "calc(50% - 4rem)", paddingRight: "calc(50% - 4rem)", WebkitOverflowScrolling: "touch" }}
+        className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          maskImage: "linear-gradient(to right, transparent, black 32px, black calc(100% - 32px), transparent)",
+          WebkitMaskImage: "linear-gradient(to right, transparent, black 32px, black calc(100% - 32px), transparent)",
+        }}
       >
         {shows.map((show) => {
           const poster = tmdbPoster(show.poster_path, "w342");
@@ -69,8 +32,7 @@ export function PublicWatchlist({ shows }: PublicWatchlistProps) {
           return (
             <div
               key={show.tmdb_id ?? show.name}
-              className="flex-shrink-0 w-28 sm:w-32 flex flex-col will-change-transform"
-              style={{ transformOrigin: "center center" }}
+              className="flex-shrink-0 w-28 sm:w-32 flex flex-col"
             >
               <div className="aspect-[2/3] relative rounded-lg overflow-hidden bg-[color:var(--surface-elevated)]">
                 {poster ? (
