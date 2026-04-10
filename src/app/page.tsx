@@ -23,9 +23,12 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen">
       <header className="bg-[#C01900] shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 py-4 flex items-center justify-between flex-wrap gap-3">
-          <h1><Logo /></h1>
-          <div className="flex items-center gap-3 text-sm">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <h1><Logo /></h1>
+            <SignOutButton />
+          </div>
+          <nav className="flex items-center gap-3 text-sm mt-3">
             <Link
               href="/search"
               className="px-4 py-2 rounded bg-white/20 hover:bg-white/30 text-white font-semibold transition-colors"
@@ -38,9 +41,7 @@ export default async function DashboardPage() {
             >
               Share link
             </Link>
-            <span className="text-white/50">|</span>
-            <SignOutButton />
-          </div>
+          </nav>
         </div>
       </header>
 
