@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import type { PublicShowRow } from "@/lib/shows/public-queries";
 import { tmdbPoster } from "@/lib/tmdb/client";
 
@@ -11,34 +11,41 @@ interface PublicWatchlistProps {
 
 export function PublicWatchlist({ shows }: PublicWatchlistProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [centerIndex, setCenterIndex] = useState(0);
+  const rafRef = useRef<number>(0);
 
-  const updateCenter = useCallback(() => {
+  const updateStyles = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
     const scrollCenter = el.scrollLeft + el.clientWidth / 2;
     const cards = el.children;
-    let closest = 0;
-    let closestDist = Infinity;
     for (let i = 0; i < cards.length; i++) {
       const card = cards[i] as HTMLElement;
       const cardCenter = card.offsetLeft + card.offsetWidth / 2;
       const dist = Math.abs(scrollCenter - cardCenter);
-      if (dist < closestDist) {
-        closestDist = dist;
-        closest = i;
-      }
+      const maxDist = el.clientWidth / 2;
+      const ratio = Math.min(dist / maxDist, 1);
+      const scale = 1.08 - ratio * 0.2;
+      const opacity = 1 - ratio * 0.4;
+      card.style.transform = `scale(${scale})`;
+      card.style.opacity = `${opacity}`;
     }
-    setCenterIndex(closest);
   }, []);
+
+  const onScroll = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(updateStyles);
+  }, [updateStyles]);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    el.addEventListener("scroll", updateCenter, { passive: true });
-    updateCenter();
-    return () => el.removeEventListener("scroll", updateCenter);
-  }, [updateCenter, shows]);
+    el.addEventListener("scroll", onScroll, { passive: true });
+    updateStyles();
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [onScroll, updateStyles, shows]);
 
   if (shows.length === 0) return null;
 
@@ -48,30 +55,23 @@ export function PublicWatchlist({ shows }: PublicWatchlistProps) {
       <p className="text-xs text-[color:var(--muted)] mb-4">
         Here&apos;s what we&apos;re watching right now.
       </p>
-      <div className="overflow-hidden">
-        <div
-          ref={scrollRef}
-          className="flex items-center gap-3 overflow-x-auto py-4 scrollbar-thin px-[calc(50%-4rem)]"
-        >
-          {shows.map((show, i) => {
-            const poster = tmdbPoster(show.poster_path, "w342");
-            const progress =
-              show.current_season != null && show.current_episode != null
-                ? `S${show.current_season}E${show.current_episode}`
-                : null;
-            const distance = Math.abs(i - centerIndex);
-            const scale = distance === 0 ? 1.1 : distance === 1 ? 0.95 : 0.85;
-            const opacity = distance === 0 ? 1 : distance === 1 ? 0.85 : 0.6;
-            return (
-              <div
-                key={show.tmdb_id ?? show.name}
-                className="flex-shrink-0 w-28 sm:w-32 flex flex-col transition-all duration-300 ease-out origin-center"
-                style={{
-                  transform: `scale(${scale})`,
-                  opacity,
-                  zIndex: distance === 0 ? 10 : 5 - distance,
-                }}
-              >
+      <div
+        ref={scrollRef}
+        className="flex items-start gap-3 overflow-x-auto py-4 scrollbar-thin"
+        style={{ paddingLeft: "calc(50% - 4rem)", paddingRight: "calc(50% - 4rem)", WebkitOverflowScrolling: "touch" }}
+      >
+        {shows.map((show) => {
+          const poster = tmdbPoster(show.poster_path, "w342");
+          const progress =
+            show.current_season != null && show.current_episode != null
+              ? `S${show.current_season}E${show.current_episode}`
+              : null;
+          return (
+            <div
+              key={show.tmdb_id ?? show.name}
+              className="flex-shrink-0 w-28 sm:w-32 flex flex-col will-change-transform"
+              style={{ transformOrigin: "center center" }}
+            >
               <div className="aspect-[2/3] relative rounded-lg overflow-hidden bg-[color:var(--surface-elevated)]">
                 {poster ? (
                   <Image
@@ -95,8 +95,7 @@ export function PublicWatchlist({ shows }: PublicWatchlistProps) {
               <p className="text-xs font-medium mt-1.5 truncate text-center">{show.name}</p>
             </div>
           );
-          })}
-        </div>
+        })}
       </div>
     </section>
   );
