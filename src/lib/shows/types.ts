@@ -1,6 +1,6 @@
 import type { TmdbEpisode } from "@/lib/tmdb/types";
 
-// Shape of a row read from public.shows, enriched with the added-by display name.
+// Shape of a row read from the shows table, enriched with the added-by display name.
 export interface ShowRow {
   id: string;
   media_type: string;

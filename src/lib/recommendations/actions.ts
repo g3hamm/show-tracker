@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { auth } from "@clerk/nextjs/server";
+import { getTurso } from "@/lib/turso/client";
 import { tmdbSearchTv } from "@/lib/tmdb/client";
 import type { TmdbSearchTvResult } from "@/lib/tmdb/types";
 
@@ -25,8 +25,6 @@ function trim(r: TmdbSearchTvResult): PublicSearchResult {
   };
 }
 
-// In-memory rate limiter for the public search endpoint.
-// Per-IP rolling window: max 30 searches per minute.
 const searchHits = new Map<string, number[]>();
 const SEARCH_LIMIT = 30;
 const SEARCH_WINDOW_MS = 60_000;
@@ -75,9 +73,7 @@ export interface RecommendInput {
   tmdbId?: number | null;
   posterPath?: string | null;
   note?: string;
-  // Honeypot: must be empty.
   website?: string;
-  // Milliseconds since form mount; must be >= MIN_FILL_MS.
   elapsedMs?: number;
 }
 
@@ -88,7 +84,7 @@ export interface RecommendResult {
 
 const MIN_FILL_MS = 2000;
 const SUBMIT_LIMIT = 5;
-const SUBMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const SUBMIT_WINDOW_MS = 60 * 60 * 1000;
 
 const submitHits = new Map<string, number[]>();
 
@@ -109,17 +105,14 @@ function rateLimitSubmit(ip: string): boolean {
 export async function submitRecommendation(
   input: RecommendInput,
 ): Promise<RecommendResult> {
-  // Honeypot: bots that fill every field trip this.
   if (input.website && input.website.length > 0) {
-    return { ok: true }; // pretend success so bots don't know
+    return { ok: true };
   }
 
-  // Time gate: humans take more than 2s to fill the form.
   if (typeof input.elapsedMs === "number" && input.elapsedMs < MIN_FILL_MS) {
     return { ok: true };
   }
 
-  // Basic validation.
   const name = (input.recommenderName || "").trim();
   const title = (input.title || "").trim();
   const note = (input.note || "").trim();
@@ -134,7 +127,6 @@ export async function submitRecommendation(
     return { ok: false, error: "Note is too long (max 1000 characters)." };
   }
 
-  // Rate limit.
   const ip = await getIp();
   if (!rateLimitSubmit(ip)) {
     return {
@@ -143,19 +135,21 @@ export async function submitRecommendation(
     };
   }
 
-  // Insert via admin client (bypasses RLS — anonymous users can't insert
-  // via PostgREST). All validation has already happened above.
-  const admin = createAdminClient();
-  const { error } = await admin.from("recommendations").insert({
-    media_type: "show",
-    tmdb_id: input.tmdbId ?? null,
-    title,
-    poster_path: input.posterPath ?? null,
-    recommender_name: name,
-    note: note.length > 0 ? note : null,
-  });
-
-  if (error) {
+  try {
+    const id = crypto.randomUUID();
+    await getTurso().execute({
+      sql: `INSERT INTO recommendations (id, media_type, tmdb_id, title, poster_path, recommender_name, note)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        id, "show",
+        input.tmdbId ?? null,
+        title,
+        input.posterPath ?? null,
+        name,
+        note.length > 0 ? note : null,
+      ],
+    });
+  } catch {
     return { ok: false, error: "Could not save your recommendation." };
   }
 
@@ -171,29 +165,23 @@ export interface TrackedShowInfo {
 }
 
 export async function getTrackedShowsPublic(): Promise<TrackedShowInfo[]> {
-  const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("shows")
-    .select("tmdb_id, archived")
-    .eq("media_type", "show")
-    .not("tmdb_id", "is", null);
-  if (error) throw error;
-  return (data ?? []).map((r: { tmdb_id: number; archived: boolean }) => ({
-    tmdbId: r.tmdb_id,
-    archived: r.archived,
+  const result = await getTurso().execute(
+    "SELECT tmdb_id, archived FROM shows WHERE media_type = 'show' AND tmdb_id IS NOT NULL",
+  );
+  return result.rows.map((r) => ({
+    tmdbId: r.tmdb_id as number,
+    archived: (r.archived as number) === 1,
   }));
 }
 
 // --- Dismiss (authenticated) ---
 
 export async function dismissRecommendation(id: string): Promise<void> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const { error } = await supabase.from("recommendations").delete().eq("id", id);
-  if (error) throw error;
+  const { userId } = await auth();
+  if (!userId) throw new Error("Not authenticated");
+  await getTurso().execute({
+    sql: "DELETE FROM recommendations WHERE id = ?",
+    args: [id],
+  });
   revalidatePath("/");
 }

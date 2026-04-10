@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getTurso } from "@/lib/turso/client";
 
 export interface RecommendationRow {
   id: string;
@@ -12,14 +12,17 @@ export interface RecommendationRow {
 }
 
 export async function listRecommendations(): Promise<RecommendationRow[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("recommendations")
-    .select(
-      "id, media_type, tmdb_id, title, poster_path, recommender_name, note, created_at",
-    )
-    .eq("media_type", "show")
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as RecommendationRow[];
+  const result = await getTurso().execute(
+    "SELECT * FROM recommendations WHERE media_type = 'show' ORDER BY created_at DESC",
+  );
+  return result.rows.map((r) => ({
+    id: r.id as string,
+    media_type: r.media_type as string,
+    tmdb_id: r.tmdb_id as number | null,
+    title: r.title as string,
+    poster_path: r.poster_path as string | null,
+    recommender_name: r.recommender_name as string,
+    note: r.note as string | null,
+    created_at: r.created_at as string,
+  }));
 }

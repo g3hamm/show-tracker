@@ -1,29 +1,17 @@
 "use client";
 
-import { useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { signOut } from "@/app/login/actions";
+import { useClerk } from "@clerk/nextjs";
 
 export function SignOutButton() {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-
-  function onClick() {
-    startTransition(async () => {
-      await signOut();
-      router.push("/login");
-      router.refresh();
-    });
-  }
+  const { signOut } = useClerk();
 
   return (
     <button
       type="button"
-      onClick={onClick}
-      disabled={pending}
+      onClick={() => signOut({ redirectUrl: "/login" })}
       className="text-xs text-[color:var(--muted)] hover:text-[color:var(--foreground)] transition-colors"
     >
-      {pending ? "Signing out…" : "Sign out"}
+      Sign out
     </button>
   );
 }

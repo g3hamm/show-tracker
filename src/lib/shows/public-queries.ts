@@ -1,7 +1,7 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { getTurso } from "@/lib/turso/client";
 
 // Public-facing show data for the /recommend page.
-// Uses the admin client since the page is unauthenticated.
+// No auth needed — Turso has no RLS, and this data is intentionally public.
 
 export interface PublicShowRow {
   name: string;
@@ -13,36 +13,15 @@ export interface PublicShowRow {
 }
 
 export async function getPublicWatchlist(): Promise<PublicShowRow[]> {
-  const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("shows")
-    .select("name, poster_path, tmdb_id, current_season, current_episode, archived")
-    .eq("media_type", "show")
-    .eq("archived", false)
-    .order("name", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as PublicShowRow[];
-}
-
-export async function getWatchedTmdbIds(): Promise<Set<number>> {
-  const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("shows")
-    .select("tmdb_id")
-    .eq("media_type", "show")
-    .eq("archived", true)
-    .not("tmdb_id", "is", null);
-  if (error) throw error;
-  return new Set((data ?? []).map((r: { tmdb_id: number }) => r.tmdb_id));
-}
-
-export async function getTrackedTmdbIds(): Promise<Set<number>> {
-  const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("shows")
-    .select("tmdb_id, archived")
-    .eq("media_type", "show")
-    .not("tmdb_id", "is", null);
-  if (error) throw error;
-  return new Set((data ?? []).map((r: { tmdb_id: number }) => r.tmdb_id));
+  const result = await getTurso().execute(
+    "SELECT name, poster_path, tmdb_id, current_season, current_episode, archived FROM shows WHERE media_type = 'show' AND archived = 0 ORDER BY name ASC",
+  );
+  return result.rows.map((r) => ({
+    name: r.name as string,
+    poster_path: r.poster_path as string | null,
+    tmdb_id: r.tmdb_id as number | null,
+    current_season: r.current_season as number | null,
+    current_episode: r.current_episode as number | null,
+    archived: false,
+  }));
 }
