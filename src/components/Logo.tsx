@@ -1,24 +1,25 @@
+import Image from "next/image";
+
 interface LogoProps {
   size?: "sm" | "md" | "lg";
 }
 
-const sizes = {
-  sm: "text-2xl",
-  md: "text-4xl",
-  lg: "text-5xl",
+const dimensions = {
+  sm: { width: 140, height: 40 },
+  md: { width: 200, height: 56 },
+  lg: { width: 280, height: 78 },
 };
 
 export function Logo({ size = "md" }: LogoProps) {
+  const { width, height } = dimensions[size];
   return (
-    <span
-      className={`${sizes[size]} tracking-wide select-none`}
-      style={{
-        fontFamily: '"Graphique", "Helvetica Neue", Helvetica, Arial, sans-serif',
-        color: "#e50914",
-        textShadow: "2px 2px 4px rgba(0,0,0,0.6)",
-      }}
-    >
-      HAMMFLIX
-    </span>
+    <Image
+      src="/hammflix-logo.png"
+      alt="HAMMFLIX"
+      width={width}
+      height={height}
+      priority
+      className="select-none"
+    />
   );
 }

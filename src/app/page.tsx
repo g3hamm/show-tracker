@@ -22,31 +22,35 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <main className="min-h-screen max-w-7xl mx-auto p-6 sm:p-8">
-      <header className="flex items-center justify-between mb-10 flex-wrap gap-3">
-        <div>
-          <h1><Logo /></h1>
-          <p className="text-sm text-[color:var(--muted)]">
-            What we&apos;re watching.
-          </p>
+    <main className="min-h-screen">
+      <header className="bg-[#b20710] shadow-lg">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 py-4 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1><Logo /></h1>
+            <p className="text-sm text-white/70">
+              What we&apos;re watching.
+            </p>
+          </div>
+          <nav className="flex items-center gap-3 text-sm">
+            <Link
+              href="/search"
+              className="px-4 py-2 rounded bg-white/20 hover:bg-white/30 text-white font-semibold transition-colors"
+            >
+              + Add show
+            </Link>
+            <Link
+              href="/recommend"
+              className="px-4 py-2 rounded bg-white/10 hover:bg-white/20 text-white transition-colors"
+            >
+              Share link
+            </Link>
+            <RefreshNowButton />
+            <SignOutButton />
+          </nav>
         </div>
-        <nav className="flex items-center gap-3 text-sm">
-          <Link
-            href="/search"
-            className="px-4 py-2 rounded bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold transition-colors"
-          >
-            + Add show
-          </Link>
-          <Link
-            href="/recommend"
-            className="px-4 py-2 rounded bg-[color:var(--surface-elevated)] hover:bg-[color:var(--border)] text-[color:var(--foreground)] transition-colors"
-          >
-            Share link
-          </Link>
-          <RefreshNowButton />
-          <SignOutButton />
-        </nav>
       </header>
+
+      <div className="max-w-7xl mx-auto p-6 sm:p-8">
 
       <Section
         title="New this week"
@@ -107,6 +111,7 @@ export default async function DashboardPage() {
           <ShowGrid shows={allShows} />
         )}
       </Section>
+      </div>
     </main>
   );
 }

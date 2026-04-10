@@ -8,7 +8,9 @@ export const metadata = {
 export default function LoginPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6 gap-8">
-      <Logo size="lg" />
+      <div className="bg-[#b20710] px-8 py-4 rounded-lg">
+        <Logo size="lg" />
+      </div>
       <SignIn
         routing="hash"
         forceRedirectUrl="/"

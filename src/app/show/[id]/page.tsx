@@ -7,6 +7,7 @@ import { formatShortDate, relativeDay } from "@/lib/dates";
 import { RemoveShowButton } from "@/components/RemoveShowButton";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { EpisodeProgressForm } from "@/components/EpisodeProgressForm";
+import { Logo } from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
@@ -22,15 +23,21 @@ export default async function ShowDetailPage({ params }: PageProps) {
   const poster = tmdbPoster(show.poster_path, "w500");
 
   return (
-    <main className="min-h-screen max-w-4xl mx-auto p-6 sm:p-8">
-      <Link
-        href="/"
-        className="text-sm text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
-      >
-        ← Dashboard
-      </Link>
+    <main className="min-h-screen">
+      <div className="bg-[#b20710] shadow-lg">
+        <div className="max-w-4xl mx-auto px-6 sm:px-8 py-4 flex items-center justify-between">
+          <Link href="/"><Logo size="sm" /></Link>
+          <Link
+            href="/"
+            className="text-sm text-white/70 hover:text-white transition-colors"
+          >
+            ← Dashboard
+          </Link>
+        </div>
+      </div>
 
-      <div className="grid md:grid-cols-[200px_1fr] gap-6 mt-6">
+      <div className="max-w-4xl mx-auto p-6 sm:p-8">
+      <div className="grid md:grid-cols-[200px_1fr] gap-6">
         <div className="w-full max-w-[200px] aspect-[2/3] relative rounded-lg overflow-hidden bg-[color:var(--surface-elevated)]">
           {poster && (
             <Image
@@ -91,6 +98,7 @@ export default async function ShowDetailPage({ params }: PageProps) {
             Last refreshed {new Date(show.last_refreshed_at).toLocaleString()}
           </p>
         </div>
+      </div>
       </div>
     </main>
   );
