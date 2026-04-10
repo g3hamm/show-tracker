@@ -11,7 +11,7 @@ export default function SearchPage() {
     <main className="min-h-screen">
       <div className="bg-[#C01900] shadow-lg">
         <div className="max-w-3xl mx-auto px-6 sm:px-8 py-4 flex items-center justify-between">
-          <Link href="/"><Logo size="sm" /></Link>
+          <Link href="/"><Logo /></Link>
           <Link
             href="/"
             className="text-sm text-white/70 hover:text-white transition-colors"

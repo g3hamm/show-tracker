@@ -9,7 +9,7 @@ export function SignOutButton() {
     <button
       type="button"
       onClick={() => signOut({ redirectUrl: "/login" })}
-      className="text-xs text-[color:var(--muted)] hover:text-[color:var(--foreground)] transition-colors"
+      className="text-sm text-white/70 hover:text-white transition-colors"
     >
       Sign out
     </button>

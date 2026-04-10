@@ -26,6 +26,7 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
   const [submitting, startSubmit] = useTransition();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
   const [trackedShows, setTrackedShows] = useState<TrackedShowInfo[]>([]);
   const mountedAt = useRef<number>(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -60,6 +61,15 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
   }, [title, picked]);
 
   function onPick(r: PublicSearchResult) {
+    const tracked = trackedShows.find((t) => t.tmdbId === r.tmdbId);
+    if (tracked) {
+      const msg = tracked.archived
+        ? `We've already watched "${r.name}" — no need to recommend it, but thanks for thinking of us!`
+        : `We're already watching "${r.name}" — great taste though!`;
+      setBlockedMessage(msg);
+      setResults([]);
+      return;
+    }
     setPicked(r);
     setTitle(r.name);
     setResults([]);
@@ -271,6 +281,24 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
         {submitting ? "Sending…" : "Send recommendation"}
       </button>
       {error && <p className="text-sm text-[color:var(--danger)]">{error}</p>}
+
+      {blockedMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-[color:var(--surface-elevated)] border border-[color:var(--border)] rounded-lg p-6 max-w-sm w-full shadow-2xl">
+            <p className="text-sm leading-relaxed">{blockedMessage}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setBlockedMessage(null);
+                setTitle("");
+              }}
+              className="mt-4 w-full px-4 py-2 rounded bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold transition-colors text-sm"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
