@@ -7,7 +7,6 @@ import {
 import { listRecommendations } from "@/lib/recommendations/queries";
 import { ShowGrid } from "@/components/ShowGrid";
 import { RecommendationCard } from "@/components/RecommendationCard";
-import { RefreshNowButton } from "@/components/RefreshNowButton";
 import { SignOutButton } from "@/components/SignOutButton";
 import { Logo } from "@/components/Logo";
 
@@ -23,14 +22,9 @@ export default async function DashboardPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="bg-[#b20710] shadow-lg">
+      <header className="bg-[#C01900] shadow-lg">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 py-4 flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h1><Logo /></h1>
-            <p className="text-sm text-white/70">
-              What we&apos;re watching.
-            </p>
-          </div>
+          <h1><Logo /></h1>
           <nav className="flex items-center gap-3 text-sm">
             <Link
               href="/search"
@@ -44,7 +38,6 @@ export default async function DashboardPage() {
             >
               Share link
             </Link>
-            <RefreshNowButton />
             <SignOutButton />
           </nav>
         </div>

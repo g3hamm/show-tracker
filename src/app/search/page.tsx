@@ -9,7 +9,7 @@ export const metadata = {
 export default function SearchPage() {
   return (
     <main className="min-h-screen">
-      <div className="bg-[#b20710] shadow-lg">
+      <div className="bg-[#C01900] shadow-lg">
         <div className="max-w-3xl mx-auto px-6 sm:px-8 py-4 flex items-center justify-between">
           <Link href="/"><Logo size="sm" /></Link>
           <Link

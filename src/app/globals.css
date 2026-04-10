@@ -16,8 +16,8 @@
   --surface: #1a1a1a;
   --surface-elevated: #2a2a2a;
   --border: #333;
-  --accent: #e50914;
-  --accent-hover: #f40612;
+  --accent: #C01900;
+  --accent-hover: #d91e00;
   --danger: #e87c03;
 }
 
@@ -31,6 +31,17 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-danger: var(--danger);
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
 }
 
 body {

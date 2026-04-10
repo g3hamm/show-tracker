@@ -28,9 +28,9 @@ export default async function RecommendPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen">
-      <div className="bg-[#b20710] shadow-lg">
+      <div className="bg-[#C01900] shadow-lg">
         <div className="max-w-xl mx-auto px-6 sm:px-8 py-4 flex items-center justify-between">
-          <Logo size="sm" />
+          <Logo />
           <Link
             href="/login"
             className="text-sm text-white/70 hover:text-white transition-colors"
@@ -47,9 +47,9 @@ export default async function RecommendPage({ params }: PageProps) {
           dashboard. No account needed.
         </p>
 
-        <PublicWatchlist shows={watchlist} />
-
         <RecommendForm defaultName={defaultName} />
+
+        <PublicWatchlist shows={watchlist} />
       </div>
     </main>
   );

@@ -17,9 +17,11 @@ export function ShowGrid({ shows, badge, emptyMessage }: ShowGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin">
       {shows.map((s) => (
-        <ShowCard key={s.id} show={s} badge={badge} />
+        <div key={s.id} className="flex-shrink-0 w-36 sm:w-44">
+          <ShowCard show={s} badge={badge} />
+        </div>
       ))}
     </div>
   );
