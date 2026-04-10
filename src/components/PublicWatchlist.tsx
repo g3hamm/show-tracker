@@ -48,29 +48,30 @@ export function PublicWatchlist({ shows }: PublicWatchlistProps) {
       <p className="text-xs text-[color:var(--muted)] mb-4">
         Here&apos;s what we&apos;re watching right now.
       </p>
-      <div
-        ref={scrollRef}
-        className="flex items-center gap-3 overflow-x-auto pb-4 scrollbar-thin px-[calc(50%-4rem)]"
-      >
-        {shows.map((show, i) => {
-          const poster = tmdbPoster(show.poster_path, "w342");
-          const progress =
-            show.current_season != null && show.current_episode != null
-              ? `S${show.current_season}E${show.current_episode}`
-              : null;
-          const distance = Math.abs(i - centerIndex);
-          const scale = distance === 0 ? 1.15 : distance === 1 ? 0.95 : 0.8;
-          const opacity = distance === 0 ? 1 : distance === 1 ? 0.85 : 0.6;
-          return (
-            <div
-              key={show.tmdb_id ?? show.name}
-              className="flex-shrink-0 w-28 sm:w-32 flex flex-col transition-all duration-300 ease-out"
-              style={{
-                transform: `scale(${scale})`,
-                opacity,
-                zIndex: distance === 0 ? 10 : 5 - distance,
-              }}
-            >
+      <div className="overflow-hidden">
+        <div
+          ref={scrollRef}
+          className="flex items-center gap-3 overflow-x-auto py-4 scrollbar-thin px-[calc(50%-4rem)]"
+        >
+          {shows.map((show, i) => {
+            const poster = tmdbPoster(show.poster_path, "w342");
+            const progress =
+              show.current_season != null && show.current_episode != null
+                ? `S${show.current_season}E${show.current_episode}`
+                : null;
+            const distance = Math.abs(i - centerIndex);
+            const scale = distance === 0 ? 1.1 : distance === 1 ? 0.95 : 0.85;
+            const opacity = distance === 0 ? 1 : distance === 1 ? 0.85 : 0.6;
+            return (
+              <div
+                key={show.tmdb_id ?? show.name}
+                className="flex-shrink-0 w-28 sm:w-32 flex flex-col transition-all duration-300 ease-out origin-center"
+                style={{
+                  transform: `scale(${scale})`,
+                  opacity,
+                  zIndex: distance === 0 ? 10 : 5 - distance,
+                }}
+              >
               <div className="aspect-[2/3] relative rounded-lg overflow-hidden bg-[color:var(--surface-elevated)]">
                 {poster ? (
                   <Image
@@ -94,7 +95,8 @@ export function PublicWatchlist({ shows }: PublicWatchlistProps) {
               <p className="text-xs font-medium mt-1.5 truncate text-center">{show.name}</p>
             </div>
           );
-        })}
+          })}
+        </div>
       </div>
     </section>
   );

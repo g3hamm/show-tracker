@@ -50,28 +50,30 @@ export function ShowGrid({ shows, badge, emptyMessage }: ShowGridProps) {
   }
 
   return (
-    <div
-      ref={scrollRef}
-      className="flex items-center gap-4 overflow-x-auto pb-4 scrollbar-thin px-[calc(50%-5rem)]"
-    >
-      {shows.map((s, i) => {
-        const distance = Math.abs(i - centerIndex);
-        const scale = distance === 0 ? 1.15 : distance === 1 ? 0.95 : 0.8;
-        const opacity = distance === 0 ? 1 : distance === 1 ? 0.85 : 0.6;
-        return (
-          <div
-            key={s.id}
-            className="flex-shrink-0 w-40 sm:w-48 transition-all duration-300 ease-out"
-            style={{
-              transform: `scale(${scale})`,
-              opacity,
-              zIndex: distance === 0 ? 10 : 5 - distance,
-            }}
-          >
-            <ShowCard show={s} badge={badge} />
-          </div>
-        );
-      })}
+    <div className="overflow-hidden">
+      <div
+        ref={scrollRef}
+        className="flex items-center gap-4 overflow-x-auto py-6 scrollbar-thin px-[calc(50%-5rem)]"
+      >
+        {shows.map((s, i) => {
+          const distance = Math.abs(i - centerIndex);
+          const scale = distance === 0 ? 1.1 : distance === 1 ? 0.95 : 0.85;
+          const opacity = distance === 0 ? 1 : distance === 1 ? 0.85 : 0.6;
+          return (
+            <div
+              key={s.id}
+              className="flex-shrink-0 w-40 sm:w-48 transition-all duration-300 ease-out origin-center"
+              style={{
+                transform: `scale(${scale})`,
+                opacity,
+                zIndex: distance === 0 ? 10 : 5 - distance,
+              }}
+            >
+              <ShowCard show={s} badge={badge} />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
