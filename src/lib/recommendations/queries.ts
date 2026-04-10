@@ -13,7 +13,7 @@ export interface RecommendationRow {
 
 export async function listRecommendations(): Promise<RecommendationRow[]> {
   const result = await getTurso().execute(
-    "SELECT * FROM recommendations WHERE media_type = 'show' ORDER BY created_at DESC",
+    "SELECT * FROM recommendations ORDER BY created_at DESC",
   );
   return result.rows.map((r) => ({
     id: r.id as string,

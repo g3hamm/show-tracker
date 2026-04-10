@@ -1,4 +1,4 @@
-import type { TmdbSearchTvResponse, TmdbTvDetails } from "./types";
+import type { TmdbSearchTvResponse, TmdbTvDetails, TmdbSearchMovieResponse, TmdbMovieDetails } from "./types";
 
 // Hard-coded image base URL. TMDB's /configuration endpoint is overkill.
 const IMAGE_BASE = "https://image.tmdb.org/t/p";
@@ -44,6 +44,21 @@ export function tmdbGetTv(tmdbId: number) {
   return tmdb<TmdbTvDetails>(
     `/tv/${tmdbId}`,
     { append_to_response: "external_ids" },
+    { revalidate: 0 },
+  );
+}
+
+export function tmdbSearchMovie(query: string) {
+  return tmdb<TmdbSearchMovieResponse>("/search/movie", {
+    query,
+    include_adult: "false",
+  });
+}
+
+export function tmdbGetMovie(tmdbId: number) {
+  return tmdb<TmdbMovieDetails>(
+    `/movie/${tmdbId}`,
+    {},
     { revalidate: 0 },
   );
 }

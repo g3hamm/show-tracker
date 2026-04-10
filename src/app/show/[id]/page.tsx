@@ -21,6 +21,7 @@ export default async function ShowDetailPage({ params }: PageProps) {
   if (!show) notFound();
 
   const poster = tmdbPoster(show.poster_path, "w500");
+  const isMovie = show.media_type === "movie";
 
   return (
     <main className="min-h-screen">
@@ -51,10 +52,17 @@ export default async function ShowDetailPage({ params }: PageProps) {
         </div>
 
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{show.name}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{show.name}</h1>
+            {isMovie && (
+              <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-blue-600/20 text-blue-400">
+                Movie
+              </span>
+            )}
+          </div>
           <div className="flex gap-3 text-xs text-[color:var(--muted)] mt-1 flex-wrap">
             {show.first_air_date && (
-              <span>First aired {show.first_air_date.slice(0, 4)}</span>
+              <span>{isMovie ? "Released" : "First aired"} {show.first_air_date.slice(0, 4)}</span>
             )}
             {show.status && <span>· {show.status}</span>}
             {show.added_by_name && <span>· Added by {show.added_by_name}</span>}
@@ -66,28 +74,32 @@ export default async function ShowDetailPage({ params }: PageProps) {
             </p>
           )}
 
-          <div className="grid sm:grid-cols-2 gap-4 mt-6">
-            <EpisodeBox
-              label="Last aired"
-              episode={show.last_episode}
-              date={show.last_air_date}
-              emptyText="No episodes aired yet."
-            />
-            <EpisodeBox
-              label="Next episode"
-              episode={show.next_episode}
-              date={show.next_air_date}
-              emptyText="No upcoming episode scheduled."
-            />
-          </div>
+          {!isMovie && (
+            <>
+              <div className="grid sm:grid-cols-2 gap-4 mt-6">
+                <EpisodeBox
+                  label="Last aired"
+                  episode={show.last_episode}
+                  date={show.last_air_date}
+                  emptyText="No episodes aired yet."
+                />
+                <EpisodeBox
+                  label="Next episode"
+                  episode={show.next_episode}
+                  date={show.next_air_date}
+                  emptyText="No upcoming episode scheduled."
+                />
+              </div>
 
-          <div className="mt-6">
-            <EpisodeProgressForm
-              showId={show.id}
-              currentSeason={show.current_season}
-              currentEpisode={show.current_episode}
-            />
-          </div>
+              <div className="mt-6">
+                <EpisodeProgressForm
+                  showId={show.id}
+                  currentSeason={show.current_season}
+                  currentEpisode={show.current_episode}
+                />
+              </div>
+            </>
+          )}
 
           <div className="flex gap-3 mt-6">
             <ArchiveToggle id={show.id} archived={show.archived} />

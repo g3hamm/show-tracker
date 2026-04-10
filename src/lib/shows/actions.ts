@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { getTurso } from "@/lib/turso/client";
-import { tmdbSearchTv, tmdbGetTv } from "@/lib/tmdb/client";
-import { mapTvDetailsToRow } from "@/lib/tmdb/mappers";
-import type { TmdbSearchTvResult } from "@/lib/tmdb/types";
+import { tmdbSearchTv, tmdbGetTv, tmdbSearchMovie, tmdbGetMovie } from "@/lib/tmdb/client";
+import { mapTvDetailsToRow, mapMovieDetailsToRow } from "@/lib/tmdb/mappers";
+import type { MediaRowFromTmdb } from "@/lib/tmdb/mappers";
 
 async function requireUser() {
   const { userId } = await auth();
@@ -13,7 +13,6 @@ async function requireUser() {
   return userId;
 }
 
-// Ensure the Clerk user has a row in the local users table.
 async function ensureUser(userId: string) {
   const user = await currentUser();
   const displayName =
@@ -29,58 +28,66 @@ async function ensureUser(userId: string) {
 
 export interface SearchResult {
   tmdbId: number;
+  mediaType: "show" | "movie";
   name: string;
   overview: string;
   posterPath: string | null;
-  firstAirDate: string | null;
-}
-
-function trimSearchResult(r: TmdbSearchTvResult): SearchResult {
-  return {
-    tmdbId: r.id,
-    name: r.name,
-    overview: r.overview,
-    posterPath: r.poster_path,
-    firstAirDate: r.first_air_date,
-  };
+  date: string | null;
 }
 
 export async function searchShows(query: string): Promise<SearchResult[]> {
   await requireUser();
   const q = query.trim();
   if (!q) return [];
-  const res = await tmdbSearchTv(q);
-  return res.results.slice(0, 20).map(trimSearchResult);
+
+  const [tvRes, movieRes] = await Promise.all([
+    tmdbSearchTv(q),
+    tmdbSearchMovie(q),
+  ]);
+
+  const tvResults: SearchResult[] = tvRes.results.slice(0, 10).map((r) => ({
+    tmdbId: r.id,
+    mediaType: "show" as const,
+    name: r.name,
+    overview: r.overview,
+    posterPath: r.poster_path,
+    date: r.first_air_date,
+  }));
+
+  const movieResults: SearchResult[] = movieRes.results.slice(0, 10).map((r) => ({
+    tmdbId: r.id,
+    mediaType: "movie" as const,
+    name: r.title,
+    overview: r.overview,
+    posterPath: r.poster_path,
+    date: r.release_date,
+  }));
+
+  return [...tvResults, ...movieResults];
 }
 
-export async function addShow(tmdbId: number): Promise<void> {
-  const userId = await requireUser();
-  await ensureUser(userId);
-  const details = await tmdbGetTv(tmdbId);
-  const row = mapTvDetailsToRow(details);
-
-  // Check if show already exists by tmdb_id.
+async function upsertMedia(row: MediaRowFromTmdb, userId: string) {
+  // Use media_type + tmdb_id to find existing (since tmdb IDs overlap between TV and movies)
   const existing = await getTurso().execute({
-    sql: "SELECT id FROM shows WHERE tmdb_id = ?",
-    args: [tmdbId],
+    sql: "SELECT id FROM shows WHERE tmdb_id = ? AND media_type = ?",
+    args: [row.tmdb_id, row.media_type],
   });
 
   if (existing.rows.length > 0) {
-    // Update existing.
     await getTurso().execute({
       sql: `UPDATE shows SET name = ?, poster_path = ?, backdrop_path = ?,
             overview = ?, status = ?, first_air_date = ?,
             next_episode = ?, last_episode = ?,
             next_air_date = ?, last_air_date = ?,
             last_refreshed_at = ?
-            WHERE tmdb_id = ?`,
+            WHERE tmdb_id = ? AND media_type = ?`,
       args: [
         row.name, row.poster_path, row.backdrop_path,
         row.overview, row.status, row.first_air_date,
         row.next_episode ? JSON.stringify(row.next_episode) : null,
         row.last_episode ? JSON.stringify(row.last_episode) : null,
         row.next_air_date, row.last_air_date,
-        row.last_refreshed_at, tmdbId,
+        row.last_refreshed_at, row.tmdb_id, row.media_type,
       ],
     });
   } else {
@@ -101,7 +108,22 @@ export async function addShow(tmdbId: number): Promise<void> {
       ],
     });
   }
+}
 
+export async function addShow(tmdbId: number, mediaType: "show" | "movie" = "show"): Promise<void> {
+  const userId = await requireUser();
+  await ensureUser(userId);
+
+  let row: MediaRowFromTmdb;
+  if (mediaType === "movie") {
+    const details = await tmdbGetMovie(tmdbId);
+    row = mapMovieDetailsToRow(details);
+  } else {
+    const details = await tmdbGetTv(tmdbId);
+    row = mapTvDetailsToRow(details);
+  }
+
+  await upsertMedia(row, userId);
   revalidatePath("/");
   revalidatePath("/search");
 }
@@ -135,10 +157,10 @@ export async function updateProgress(
   revalidatePath(`/show/${id}`);
 }
 
-// Refresh logic shared by the "Refresh now" button and the cron route.
+// Refresh all tracked media (shows + movies).
 export async function refreshAllShows(): Promise<{ refreshed: number; failed: number }> {
   const result = await getTurso().execute(
-    "SELECT id, tmdb_id FROM shows WHERE media_type = 'show' AND tmdb_id IS NOT NULL",
+    "SELECT id, tmdb_id, media_type FROM shows WHERE tmdb_id IS NOT NULL",
   );
 
   let refreshed = 0;
@@ -151,8 +173,17 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
     const results = await Promise.allSettled(
       batch.map(async (s) => {
         const tmdbId = s.tmdb_id as number;
-        const details = await tmdbGetTv(tmdbId);
-        const row = mapTvDetailsToRow(details);
+        const mediaType = s.media_type as string;
+
+        let row: MediaRowFromTmdb;
+        if (mediaType === "movie") {
+          const details = await tmdbGetMovie(tmdbId);
+          row = mapMovieDetailsToRow(details);
+        } else {
+          const details = await tmdbGetTv(tmdbId);
+          row = mapTvDetailsToRow(details);
+        }
+
         await getTurso().execute({
           sql: `UPDATE shows SET name = ?, poster_path = ?, backdrop_path = ?,
                 overview = ?, status = ?, first_air_date = ?,

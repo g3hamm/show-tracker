@@ -10,7 +10,7 @@ export function SearchBox() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, startSearch] = useTransition();
   const [adding, startAdd] = useTransition();
-  const [addedIds, setAddedIds] = useState<Set<number>>(new Set());
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -37,11 +37,12 @@ export function SearchBox() {
     };
   }, [query]);
 
-  function onAdd(tmdbId: number) {
+  function onAdd(r: SearchResult) {
+    const key = `${r.mediaType}:${r.tmdbId}`;
     startAdd(async () => {
       try {
-        await addShow(tmdbId);
-        setAddedIds((prev) => new Set(prev).add(tmdbId));
+        await addShow(r.tmdbId, r.mediaType);
+        setAddedIds((prev) => new Set(prev).add(key));
       } catch (e) {
         setError(e instanceof Error ? e.message : "Add failed");
       }
@@ -52,7 +53,7 @@ export function SearchBox() {
     <div>
       <input
         type="text"
-        placeholder="Search for a show..."
+        placeholder="Search for a show or movie..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         autoFocus
@@ -65,10 +66,11 @@ export function SearchBox() {
       <ul className="flex flex-col gap-2">
         {results.map((r) => {
           const poster = tmdbPoster(r.posterPath, "w185");
-          const isAdded = addedIds.has(r.tmdbId);
+          const key = `${r.mediaType}:${r.tmdbId}`;
+          const isAdded = addedIds.has(key);
           return (
             <li
-              key={r.tmdbId}
+              key={key}
               className="flex gap-3 p-3 rounded-lg bg-[color:var(--surface)] border border-[color:var(--border)]"
             >
               <div className="w-16 h-24 relative flex-shrink-0 rounded overflow-hidden bg-[color:var(--surface-elevated)]">
@@ -83,11 +85,14 @@ export function SearchBox() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-center gap-2">
                   <h3 className="font-medium truncate">{r.name}</h3>
-                  {r.firstAirDate && (
+                  <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded ${r.mediaType === "movie" ? "bg-blue-600/20 text-blue-400" : "bg-emerald-600/20 text-emerald-400"}`}>
+                    {r.mediaType === "movie" ? "Movie" : "TV"}
+                  </span>
+                  {r.date && (
                     <span className="text-xs text-[color:var(--muted)]">
-                      {r.firstAirDate.slice(0, 4)}
+                      {r.date.slice(0, 4)}
                     </span>
                   )}
                 </div>
@@ -97,7 +102,7 @@ export function SearchBox() {
               </div>
               <button
                 type="button"
-                onClick={() => onAdd(r.tmdbId)}
+                onClick={() => onAdd(r)}
                 disabled={adding || isAdded}
                 className="self-start px-3 py-1.5 rounded text-sm bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold disabled:opacity-60 transition-colors"
               >

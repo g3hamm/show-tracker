@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS shows (
   id                TEXT PRIMARY KEY,       -- app-generated UUID
   media_type        TEXT NOT NULL DEFAULT 'show',
-  tmdb_id           INTEGER UNIQUE,         -- nullable so books can skip it
+  tmdb_id           INTEGER,                -- nullable so books can skip it
   name              TEXT NOT NULL,
   poster_path       TEXT,
   backdrop_path     TEXT,
@@ -38,6 +38,7 @@ CREATE INDEX IF NOT EXISTS shows_last_air_date_idx ON shows (last_air_date);
 CREATE INDEX IF NOT EXISTS shows_archived_idx      ON shows (archived);
 CREATE INDEX IF NOT EXISTS shows_media_type_idx    ON shows (media_type);
 CREATE INDEX IF NOT EXISTS shows_tmdb_id_idx       ON shows (tmdb_id);
+CREATE UNIQUE INDEX IF NOT EXISTS shows_tmdb_media_uniq ON shows (tmdb_id, media_type);
 
 -- ---------- recommendations (public submission inbox) ----------
 CREATE TABLE IF NOT EXISTS recommendations (

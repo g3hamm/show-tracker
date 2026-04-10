@@ -14,11 +14,20 @@ interface ShowCardProps {
 export function ShowCard({ show, badge }: ShowCardProps) {
   const poster = tmdbPoster(show.poster_path, "w342");
   const today = todayInAppTz();
+  const isMovie = show.media_type === "movie";
 
   let badgeText: string | null = null;
   let subline: string | null = null;
 
-  if (badge === "new" && show.last_air_date) {
+  if (isMovie) {
+    // Movies: show release year and status
+    if (show.first_air_date) {
+      subline = show.first_air_date.slice(0, 4);
+    }
+    if (show.status && show.status !== "Released") {
+      subline = subline ? `${subline} · ${show.status}` : show.status;
+    }
+  } else if (badge === "new" && show.last_air_date) {
     badgeText = "NEW";
     const ep = show.last_episode;
     subline = ep
@@ -58,7 +67,12 @@ export function ShowCard({ show, badge }: ShowCardProps) {
               {show.name}
             </div>
           )}
-          {badgeText && (
+          {isMovie && (
+            <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-blue-600/80 text-white">
+              MOVIE
+            </span>
+          )}
+          {!isMovie && badgeText && (
             <span
               className={
                 "absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider " +

@@ -37,7 +37,7 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
   }, []);
 
   useEffect(() => {
-    if (picked && picked.name === title) return; // already locked in
+    if (picked && picked.name === title) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     const q = title.trim();
     if (q.length < 2) {
@@ -50,7 +50,6 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
           const res = await publicSearchShows(q);
           setResults(res);
         } catch {
-          // Silent fail — typed title still works.
           setResults([]);
         }
       });
@@ -61,10 +60,13 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
   }, [title, picked]);
 
   function onPick(r: PublicSearchResult) {
-    const tracked = trackedShows.find((t) => t.tmdbId === r.tmdbId);
+    const tracked = trackedShows.find(
+      (t) => t.tmdbId === r.tmdbId && t.mediaType === r.mediaType,
+    );
     if (tracked) {
+      const label = r.mediaType === "movie" ? "movie" : "show";
       const msg = tracked.archived
-        ? `We've already watched "${r.name}" — no need to recommend it, but thanks for thinking of us!`
+        ? `We've already watched "${r.name}" — no need to recommend this ${label}, but thanks for thinking of us!`
         : `We're already watching "${r.name}" — great taste though!`;
       setBlockedMessage(msg);
       setResults([]);
@@ -86,6 +88,7 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
       const result = await submitRecommendation({
         recommenderName: name,
         title,
+        mediaType: picked?.mediaType ?? "show",
         tmdbId: picked?.tmdbId ?? null,
         posterPath: picked?.posterPath ?? null,
         note,
@@ -127,15 +130,10 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      {/* Honeypot: hidden from humans, filled by naive bots. */}
+      {/* Honeypot */}
       <div
         aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: "-9999px",
-          top: "-9999px",
-          visibility: "hidden",
-        }}
+        style={{ position: "absolute", left: "-9999px", top: "-9999px", visibility: "hidden" }}
       >
         <label>
           Website
@@ -167,7 +165,7 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
 
       <div>
         <label className="block text-xs text-[color:var(--muted)] mb-1">
-          Show title
+          Show or movie title
         </label>
         <input
           type="text"
@@ -185,7 +183,10 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
           <div className="mt-2 flex items-center gap-2 text-xs text-[color:var(--muted)]">
             <span>
               Locked in: <span className="text-[color:var(--foreground)]">{picked.name}</span>
-              {picked.firstAirDate && ` (${picked.firstAirDate.slice(0, 4)})`}
+              {picked.date && ` (${picked.date.slice(0, 4)})`}
+              <span className={`ml-1.5 text-[10px] font-semibold uppercase px-1 py-0.5 rounded ${picked.mediaType === "movie" ? "bg-blue-600/20 text-blue-400" : "bg-emerald-600/20 text-emerald-400"}`}>
+                {picked.mediaType === "movie" ? "Movie" : "TV"}
+              </span>
             </span>
             <button
               type="button"
@@ -200,11 +201,13 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
           <ul className="mt-2 flex flex-col gap-1 max-h-64 overflow-auto rounded-md border border-[color:var(--border)] bg-[color:var(--surface)]">
             {results.map((r) => {
               const poster = tmdbPoster(r.posterPath, "w92");
-              const tracked = trackedShows.find((t) => t.tmdbId === r.tmdbId);
+              const tracked = trackedShows.find(
+                (t) => t.tmdbId === r.tmdbId && t.mediaType === r.mediaType,
+              );
               const isWatched = tracked?.archived === true;
               const isTracking = tracked != null && !tracked.archived;
               return (
-                <li key={r.tmdbId}>
+                <li key={`${r.mediaType}:${r.tmdbId}`}>
                   <button
                     type="button"
                     onClick={() => onPick(r)}
@@ -231,6 +234,9 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
                     <div className="min-w-0">
                       <p className="text-sm truncate">
                         {r.name}
+                        <span className={`ml-1.5 text-[9px] font-semibold uppercase px-1 py-0.5 rounded ${r.mediaType === "movie" ? "bg-blue-600/20 text-blue-400" : "bg-emerald-600/20 text-emerald-400"}`}>
+                          {r.mediaType === "movie" ? "Movie" : "TV"}
+                        </span>
                         {isWatched && (
                           <span className="ml-2 text-[10px] text-[color:var(--muted)] font-medium">
                             Already watched
@@ -242,9 +248,9 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
                           </span>
                         )}
                       </p>
-                      {r.firstAirDate && (
+                      {r.date && (
                         <p className="text-[10px] text-[color:var(--muted)]">
-                          {r.firstAirDate.slice(0, 4)}
+                          {r.date.slice(0, 4)}
                         </p>
                       )}
                     </div>

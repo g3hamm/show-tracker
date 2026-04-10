@@ -39,3 +39,32 @@ export interface TmdbTvDetails {
   next_episode_to_air: TmdbEpisode | null;
   last_episode_to_air: TmdbEpisode | null;
 }
+
+// --- Movies ---
+
+export interface TmdbSearchMovieResult {
+  id: number;
+  title: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  release_date: string | null;
+}
+
+export interface TmdbSearchMovieResponse {
+  page: number;
+  total_pages: number;
+  total_results: number;
+  results: TmdbSearchMovieResult[];
+}
+
+export interface TmdbMovieDetails {
+  id: number;
+  title: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  status: string;
+  release_date: string | null;
+  runtime: number | null;
+}

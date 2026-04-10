@@ -38,7 +38,7 @@ export async function getNewThisWeek(): Promise<ShowRow[]> {
   const result = await getTurso().execute({
     sql: `SELECT s.*, u.display_name FROM shows s
           LEFT JOIN users u ON s.added_by = u.id
-          WHERE s.media_type = 'show' AND s.archived = 0
+          WHERE s.archived = 0
             AND s.last_air_date >= ? AND s.last_air_date <= ?
           ORDER BY s.last_air_date DESC`,
     args: [weekAgo, today],
@@ -52,7 +52,7 @@ export async function getComingSoon(): Promise<ShowRow[]> {
   const result = await getTurso().execute({
     sql: `SELECT s.*, u.display_name FROM shows s
           LEFT JOIN users u ON s.added_by = u.id
-          WHERE s.media_type = 'show' AND s.archived = 0
+          WHERE s.archived = 0
             AND s.next_air_date >= ? AND s.next_air_date <= ?
           ORDER BY s.next_air_date ASC`,
     args: [today, horizon],
@@ -66,11 +66,10 @@ export async function getAllTrackedShows(
   const sql = includeArchived
     ? `SELECT s.*, u.display_name FROM shows s
        LEFT JOIN users u ON s.added_by = u.id
-       WHERE s.media_type = 'show'
        ORDER BY s.name ASC`
     : `SELECT s.*, u.display_name FROM shows s
        LEFT JOIN users u ON s.added_by = u.id
-       WHERE s.media_type = 'show' AND s.archived = 0
+       WHERE s.archived = 0
        ORDER BY s.name ASC`;
   const result = await getTurso().execute(sql);
   return result.rows.map(mapRow);
@@ -80,7 +79,7 @@ export async function getShowById(id: string): Promise<ShowRow | null> {
   const result = await getTurso().execute({
     sql: `SELECT s.*, u.display_name FROM shows s
           LEFT JOIN users u ON s.added_by = u.id
-          WHERE s.media_type = 'show' AND s.id = ?`,
+          WHERE s.id = ?`,
     args: [id],
   });
   if (result.rows.length === 0) return null;
