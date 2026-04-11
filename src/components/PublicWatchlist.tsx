@@ -16,19 +16,20 @@ export function PublicWatchlist({ shows }: PublicWatchlistProps) {
   const updateStyles = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const scrollCenter = el.scrollLeft + el.clientWidth / 2;
-    const cards = el.children;
-    for (let i = 0; i < cards.length; i++) {
-      const card = cards[i] as HTMLElement;
-      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-      const dist = Math.abs(scrollCenter - cardCenter);
-      const maxDist = el.clientWidth * 0.6;
+    const rect = el.getBoundingClientRect();
+    const containerCenter = rect.left + rect.width / 2;
+    const cards = el.querySelectorAll<HTMLElement>("[data-card]");
+    cards.forEach((card) => {
+      const cr = card.getBoundingClientRect();
+      const cardCenter = cr.left + cr.width / 2;
+      const dist = Math.abs(containerCenter - cardCenter);
+      const maxDist = rect.width * 0.5;
       const ratio = Math.min(dist / maxDist, 1);
       const scale = 1.05 - ratio * 0.15;
       const opacity = 1 - ratio * 0.35;
       card.style.transform = `scale(${scale})`;
       card.style.opacity = `${opacity}`;
-    }
+    });
   }, []);
 
   const onScroll = useCallback(() => {
@@ -51,15 +52,21 @@ export function PublicWatchlist({ shows }: PublicWatchlistProps) {
 
   return (
     <section className="mt-10">
-      <h2 className="text-lg font-semibold mb-1">Currently watching</h2>
-      <p className="text-xs text-[color:var(--muted)] mb-4">
-        Here&apos;s what we&apos;re watching right now.
-      </p>
+      <div className="max-w-xl mx-auto px-6 sm:px-8">
+        <h2 className="text-lg font-semibold mb-1">Currently watching</h2>
+        <p className="text-xs text-[color:var(--muted)] mb-4">
+          Here&apos;s what we&apos;re watching right now.
+        </p>
+      </div>
       <div
         ref={scrollRef}
         className="flex items-start gap-3 overflow-x-auto py-2 scrollbar-thin"
-        style={{ WebkitOverflowScrolling: "touch", paddingLeft: "25%", paddingRight: "25%" }}
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
+        <div
+          aria-hidden="true"
+          className="flex-shrink-0 w-6 sm:w-8 lg:w-[max(2rem,calc((100vw-36rem)/2+2rem))]"
+        />
         {shows.map((show) => {
           const poster = tmdbPoster(show.poster_path, "w342");
           const progress =
@@ -69,6 +76,7 @@ export function PublicWatchlist({ shows }: PublicWatchlistProps) {
           return (
             <div
               key={show.tmdb_id ?? show.name}
+              data-card
               className="flex-shrink-0 w-28 sm:w-32 flex flex-col will-change-transform origin-center"
             >
               <div className="aspect-[2/3] relative rounded-lg overflow-hidden bg-[color:var(--surface-elevated)]">
@@ -95,6 +103,7 @@ export function PublicWatchlist({ shows }: PublicWatchlistProps) {
             </div>
           );
         })}
+        <div aria-hidden="true" className="flex-shrink-0 w-[50vw]" />
       </div>
     </section>
   );

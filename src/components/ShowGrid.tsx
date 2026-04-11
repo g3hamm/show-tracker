@@ -17,19 +17,20 @@ export function ShowGrid({ shows, badge, emptyMessage }: ShowGridProps) {
   const updateStyles = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const scrollCenter = el.scrollLeft + el.clientWidth / 2;
-    const cards = el.children;
-    for (let i = 0; i < cards.length; i++) {
-      const card = cards[i] as HTMLElement;
-      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-      const dist = Math.abs(scrollCenter - cardCenter);
-      const maxDist = el.clientWidth * 0.6;
+    const rect = el.getBoundingClientRect();
+    const containerCenter = rect.left + rect.width / 2;
+    const cards = el.querySelectorAll<HTMLElement>("[data-card]");
+    cards.forEach((card) => {
+      const cr = card.getBoundingClientRect();
+      const cardCenter = cr.left + cr.width / 2;
+      const dist = Math.abs(containerCenter - cardCenter);
+      const maxDist = rect.width * 0.5;
       const ratio = Math.min(dist / maxDist, 1);
       const scale = 1.05 - ratio * 0.15;
       const opacity = 1 - ratio * 0.35;
       card.style.transform = `scale(${scale})`;
       card.style.opacity = `${opacity}`;
-    }
+    });
   }, []);
 
   const onScroll = useCallback(() => {
@@ -50,9 +51,11 @@ export function ShowGrid({ shows, badge, emptyMessage }: ShowGridProps) {
 
   if (shows.length === 0) {
     return (
-      <p className="text-sm text-[color:var(--muted)] italic">
-        {emptyMessage ?? "Nothing here yet."}
-      </p>
+      <div className="max-w-7xl mx-auto px-6 sm:px-8">
+        <p className="text-sm text-[color:var(--muted)] italic">
+          {emptyMessage ?? "Nothing here yet."}
+        </p>
+      </div>
     );
   }
 
@@ -60,16 +63,22 @@ export function ShowGrid({ shows, badge, emptyMessage }: ShowGridProps) {
     <div
       ref={scrollRef}
       className="flex items-start gap-4 overflow-x-auto py-2 scrollbar-thin"
-      style={{ WebkitOverflowScrolling: "touch", paddingLeft: "25%", paddingRight: "25%" }}
+      style={{ WebkitOverflowScrolling: "touch" }}
     >
+      <div
+        aria-hidden="true"
+        className="flex-shrink-0 w-6 sm:w-8 lg:w-[max(2rem,calc((100vw-80rem)/2+2rem))]"
+      />
       {shows.map((s) => (
         <div
           key={s.id}
+          data-card
           className="flex-shrink-0 w-36 sm:w-44 will-change-transform origin-center"
         >
           <ShowCard show={s} badge={badge} />
         </div>
       ))}
+      <div aria-hidden="true" className="flex-shrink-0 w-[50vw]" />
     </div>
   );
 }

@@ -48,9 +48,9 @@ export default async function RecommendPage({ params }: PageProps) {
         </p>
 
         <RecommendForm defaultName={defaultName} />
-
-        <PublicWatchlist shows={watchlist} />
       </div>
+
+      <PublicWatchlist shows={watchlist} />
     </main>
   );
 }
