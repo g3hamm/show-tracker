@@ -5,6 +5,8 @@ import { headers } from "next/headers";
 import { auth } from "@clerk/nextjs/server";
 import { getTurso } from "@/lib/turso/client";
 import { tmdbSearchTv, tmdbSearchMovie } from "@/lib/tmdb/client";
+import { emailEnabled, getResend } from "@/lib/email/client";
+import { newRecommendationEmail } from "@/lib/email/templates";
 
 // --- Public search (used on /recommend, no auth) ---
 
@@ -84,6 +86,7 @@ export async function publicSearchShows(
 
 export interface RecommendInput {
   recommenderName: string;
+  recommenderEmail?: string;
   title: string;
   mediaType?: "show" | "movie";
   tmdbId?: number | null;
@@ -131,6 +134,7 @@ export async function submitRecommendation(
   }
 
   const name = (input.recommenderName || "").trim();
+  const email = (input.recommenderEmail || "").trim();
   const title = (input.title || "").trim();
   const note = (input.note || "").trim();
 
@@ -143,6 +147,9 @@ export async function submitRecommendation(
   if (note.length > 1000) {
     return { ok: false, error: "Note is too long (max 1000 characters)." };
   }
+  if (email.length > 0 && !email.includes("@")) {
+    return { ok: false, error: "Please enter a valid email address." };
+  }
 
   const ip = await getIp();
   if (!rateLimitSubmit(ip)) {
@@ -152,23 +159,42 @@ export async function submitRecommendation(
     };
   }
 
+  const mediaType = input.mediaType ?? "show";
+
   try {
     const id = crypto.randomUUID();
     await getTurso().execute({
-      sql: `INSERT INTO recommendations (id, media_type, tmdb_id, title, poster_path, recommender_name, note, overview)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      sql: `INSERT INTO recommendations (id, media_type, tmdb_id, title, poster_path, recommender_name, recommender_email, note, overview)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
-        id, input.mediaType ?? "show",
+        id, mediaType,
         input.tmdbId ?? null,
         title,
         input.posterPath ?? null,
         name,
+        email.length > 0 ? email : null,
         note.length > 0 ? note : null,
         input.overview ?? null,
       ],
     });
   } catch {
     return { ok: false, error: "Could not save your recommendation." };
+  }
+
+  // Send notification email to owner (fire-and-forget)
+  const notifyEmail = process.env.NOTIFICATION_EMAIL;
+  if (emailEnabled() && notifyEmail) {
+    const fromEmail = process.env.RESEND_FROM ?? "HAMMFLIX <onboarding@resend.dev>";
+    const { subject, html } = newRecommendationEmail({
+      recommenderName: name,
+      title,
+      mediaType,
+      note: note.length > 0 ? note : null,
+      overview: input.overview ?? null,
+    });
+    getResend()
+      .emails.send({ from: fromEmail, to: notifyEmail, subject, html })
+      .catch(() => {});
   }
 
   revalidatePath("/");

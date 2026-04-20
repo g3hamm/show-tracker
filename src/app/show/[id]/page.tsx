@@ -7,6 +7,7 @@ import { formatShortDate, relativeDay } from "@/lib/dates";
 import { RemoveShowButton } from "@/components/RemoveShowButton";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { EpisodeProgressForm } from "@/components/EpisodeProgressForm";
+import { StarRating } from "@/components/StarRating";
 import { Logo } from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
@@ -110,6 +111,13 @@ export default async function ShowDetailPage({ params }: PageProps) {
             <ArchiveToggle id={show.id} archived={show.archived} />
             <RemoveShowButton id={show.id} />
           </div>
+
+          {show.archived && (
+            <div className="mt-6 p-4 rounded-lg bg-[color:var(--surface)] border border-[color:var(--border)]">
+              <p className="text-[10px] uppercase tracking-wider text-[color:var(--muted)] mb-2">Rating & Review</p>
+              <StarRating showId={show.id} rating={show.rating} review={show.review} />
+            </div>
+          )}
 
           <p className="text-[10px] text-[color:var(--muted)] mt-6">
             Last refreshed {new Date(show.last_refreshed_at).toLocaleString()}

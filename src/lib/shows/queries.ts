@@ -25,8 +25,11 @@ function mapRow(r: any): ShowRow {
     current_season: r.current_season,
     current_episode: r.current_episode,
     archived: r.archived === 1,
+    rating: r.rating as number | null ?? null,
+    review: r.review as string | null ?? null,
     last_refreshed_at: r.last_refreshed_at,
     recommended_by: r.recommended_by ?? null,
+    recommended_by_email: r.recommended_by_email ?? null,
     added_by: r.added_by,
     created_at: r.created_at,
     added_by_name: r.display_name ?? null,
@@ -73,6 +76,16 @@ export async function getAllTrackedShows(
        WHERE s.archived = 0
        ORDER BY s.name ASC`;
   const result = await getTurso().execute(sql);
+  return result.rows.map(mapRow);
+}
+
+export async function getFinishedShows(): Promise<ShowRow[]> {
+  const result = await getTurso().execute(
+    `SELECT s.*, u.display_name FROM shows s
+     LEFT JOIN users u ON s.added_by = u.id
+     WHERE s.archived = 1
+     ORDER BY s.name ASC`,
+  );
   return result.rows.map(mapRow);
 }
 

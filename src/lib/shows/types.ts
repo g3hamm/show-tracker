@@ -18,8 +18,11 @@ export interface ShowRow {
   current_season: number | null;
   current_episode: number | null;
   archived: boolean;
+  rating: number | null;
+  review: string | null;
   last_refreshed_at: string;
   recommended_by: string | null;
+  recommended_by_email: string | null;
   added_by: string | null;
   created_at: string;
   added_by_name: string | null;

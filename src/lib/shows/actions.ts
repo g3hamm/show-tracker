@@ -6,6 +6,8 @@ import { getTurso } from "@/lib/turso/client";
 import { tmdbSearchTv, tmdbGetTv, tmdbSearchMovie, tmdbGetMovie } from "@/lib/tmdb/client";
 import { mapTvDetailsToRow, mapMovieDetailsToRow } from "@/lib/tmdb/mappers";
 import type { MediaRowFromTmdb } from "@/lib/tmdb/mappers";
+import { emailEnabled, getResend } from "@/lib/email/client";
+import { watchedItEmail } from "@/lib/email/templates";
 
 async function requireUser() {
   const { userId } = await auth();
@@ -66,7 +68,12 @@ export async function searchShows(query: string): Promise<SearchResult[]> {
   return [...tvResults, ...movieResults];
 }
 
-async function upsertMedia(row: MediaRowFromTmdb, userId: string, recommendedBy?: string | null) {
+interface RecommenderInfo {
+  name?: string | null;
+  email?: string | null;
+}
+
+async function upsertMedia(row: MediaRowFromTmdb, userId: string, recommender?: RecommenderInfo | null) {
   const existing = await getTurso().execute({
     sql: "SELECT id FROM shows WHERE tmdb_id = ? AND media_type = ?",
     args: [row.tmdb_id, row.media_type],
@@ -94,8 +101,8 @@ async function upsertMedia(row: MediaRowFromTmdb, userId: string, recommendedBy?
     await getTurso().execute({
       sql: `INSERT INTO shows (id, media_type, tmdb_id, name, poster_path, backdrop_path,
             overview, status, first_air_date, next_episode, last_episode,
-            next_air_date, last_air_date, last_refreshed_at, recommended_by, added_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            next_air_date, last_air_date, last_refreshed_at, recommended_by, recommended_by_email, added_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         id, row.media_type, row.tmdb_id, row.name,
         row.poster_path, row.backdrop_path, row.overview, row.status,
@@ -103,7 +110,10 @@ async function upsertMedia(row: MediaRowFromTmdb, userId: string, recommendedBy?
         row.next_episode ? JSON.stringify(row.next_episode) : null,
         row.last_episode ? JSON.stringify(row.last_episode) : null,
         row.next_air_date, row.last_air_date,
-        row.last_refreshed_at, recommendedBy ?? null, userId,
+        row.last_refreshed_at,
+        recommender?.name ?? null,
+        recommender?.email ?? null,
+        userId,
       ],
     });
   }
@@ -113,6 +123,7 @@ export async function addShow(
   tmdbId: number,
   mediaType: "show" | "movie" = "show",
   recommendedBy?: string | null,
+  recommendedByEmail?: string | null,
 ): Promise<void> {
   const userId = await requireUser();
   await ensureUser(userId);
@@ -126,7 +137,7 @@ export async function addShow(
     row = mapTvDetailsToRow(details);
   }
 
-  await upsertMedia(row, userId, recommendedBy);
+  await upsertMedia(row, userId, { name: recommendedBy, email: recommendedByEmail });
   revalidatePath("/");
   revalidatePath("/search");
 }
@@ -143,6 +154,36 @@ export async function archiveShow(id: string, archived: boolean): Promise<void> 
     sql: "UPDATE shows SET archived = ? WHERE id = ?",
     args: [archived ? 1 : 0, id],
   });
+
+  // When archiving (finishing), send "we watched it" email to recommender
+  if (archived && emailEnabled()) {
+    try {
+      const result = await getTurso().execute({
+        sql: "SELECT name, media_type, recommended_by, recommended_by_email FROM shows WHERE id = ?",
+        args: [id],
+      });
+      const show = result.rows[0];
+      if (show?.recommended_by_email) {
+        const fromEmail = process.env.RESEND_FROM ?? "HAMMFLIX <onboarding@resend.dev>";
+        const { subject, html } = watchedItEmail({
+          recommenderName: show.recommended_by as string,
+          title: show.name as string,
+          mediaType: show.media_type as string,
+        });
+        getResend()
+          .emails.send({
+            from: fromEmail,
+            to: show.recommended_by_email as string,
+            subject,
+            html,
+          })
+          .catch(() => {});
+      }
+    } catch {
+      // Non-critical — don't block archiving
+    }
+  }
+
   revalidatePath("/");
 }
 
@@ -155,6 +196,20 @@ export async function updateProgress(
   await getTurso().execute({
     sql: "UPDATE shows SET current_season = ?, current_episode = ? WHERE id = ?",
     args: [season, episode, id],
+  });
+  revalidatePath("/");
+  revalidatePath(`/show/${id}`);
+}
+
+export async function rateShow(
+  id: string,
+  rating: number | null,
+  review: string | null,
+): Promise<void> {
+  await requireUser();
+  await getTurso().execute({
+    sql: "UPDATE shows SET rating = ?, review = ? WHERE id = ?",
+    args: [rating, review ?? null, id],
   });
   revalidatePath("/");
   revalidatePath(`/show/${id}`);

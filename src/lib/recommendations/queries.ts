@@ -7,6 +7,7 @@ export interface RecommendationRow {
   title: string;
   poster_path: string | null;
   recommender_name: string;
+  recommender_email: string | null;
   note: string | null;
   overview: string | null;
   created_at: string;
@@ -23,6 +24,7 @@ export async function listRecommendations(): Promise<RecommendationRow[]> {
     title: r.title as string,
     poster_path: r.poster_path as string | null,
     recommender_name: r.recommender_name as string,
+    recommender_email: r.recommender_email as string | null,
     note: r.note as string | null,
     overview: r.overview as string | null,
     created_at: r.created_at as string,

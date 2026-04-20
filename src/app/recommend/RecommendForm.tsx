@@ -17,6 +17,7 @@ interface RecommendFormProps {
 
 export function RecommendForm({ defaultName }: RecommendFormProps) {
   const [name, setName] = useState(defaultName ?? "");
+  const [email, setEmail] = useState("");
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
@@ -87,6 +88,7 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
     startSubmit(async () => {
       const result = await submitRecommendation({
         recommenderName: name,
+        recommenderEmail: email || undefined,
         title,
         mediaType: picked?.mediaType ?? "show",
         tmdbId: picked?.tmdbId ?? null,
@@ -116,6 +118,7 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
           type="button"
           onClick={() => {
             setName("");
+            setEmail("");
             setTitle("");
             setNote("");
             setPicked(null);
@@ -161,6 +164,20 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
           onChange={(e) => setName(e.target.value)}
           placeholder="Alex"
           className={`w-full px-4 py-3 rounded-md bg-[color:var(--surface)] border border-[color:var(--border)] focus:outline-none focus:border-[color:var(--accent)]${defaultName ? " opacity-70 cursor-not-allowed" : ""}`}
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs text-[color:var(--muted)] mb-1">
+          Your email <span className="opacity-60">(optional — we&apos;ll let you know when we watch it)</span>
+        </label>
+        <input
+          type="email"
+          maxLength={120}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="alex@example.com"
+          className="w-full px-4 py-3 rounded-md bg-[color:var(--surface)] border border-[color:var(--border)] focus:outline-none focus:border-[color:var(--accent)]"
         />
       </div>
 

@@ -3,21 +3,24 @@ import {
   getNewThisWeek,
   getComingSoon,
   getAllTrackedShows,
+  getFinishedShows,
 } from "@/lib/shows/queries";
 import { listRecommendations } from "@/lib/recommendations/queries";
 import { ShowGrid } from "@/components/ShowGrid";
 import { RecommendationCard } from "@/components/RecommendationCard";
+import { FinishedSection } from "@/components/FinishedSection";
 import { SignOutButton } from "@/components/SignOutButton";
 import { Logo } from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [newThisWeek, comingSoon, allShows, recommendations] = await Promise.all([
+  const [newThisWeek, comingSoon, allShows, recommendations, finished] = await Promise.all([
     getNewThisWeek(),
     getComingSoon(),
     getAllTrackedShows(),
     listRecommendations(),
+    getFinishedShows(),
   ]);
 
   return (
@@ -109,6 +112,13 @@ export default async function DashboardPage() {
           ) : (
             <ShowGrid shows={allShows} />
           )}
+        </Section>
+
+        <Section
+          title="Finished"
+          subtitle={`${finished.length} watched — rate and review.`}
+        >
+          <FinishedSection shows={finished} />
         </Section>
       </div>
     </main>

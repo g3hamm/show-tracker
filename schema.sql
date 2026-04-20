@@ -28,8 +28,11 @@ CREATE TABLE IF NOT EXISTS shows (
   current_season    INTEGER,
   current_episode   INTEGER,
   archived          INTEGER NOT NULL DEFAULT 0,  -- 0 = false, 1 = true
+  rating            INTEGER,                     -- 1-5 stars
+  review            TEXT,                        -- personal notes / inside jokes
   last_refreshed_at TEXT NOT NULL DEFAULT (datetime('now')),
   recommended_by    TEXT,                    -- name of person who recommended
+  recommended_by_email TEXT,                 -- email of recommender (for notifications)
   added_by          TEXT REFERENCES users(id) ON DELETE SET NULL,
   created_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -49,6 +52,7 @@ CREATE TABLE IF NOT EXISTS recommendations (
   title             TEXT NOT NULL,
   poster_path       TEXT,
   recommender_name  TEXT NOT NULL CHECK (length(recommender_name) BETWEEN 1 AND 60),
+  recommender_email TEXT,                    -- optional, for "we watched it" notifications
   note              TEXT CHECK (note IS NULL OR length(note) <= 1000),
   overview          TEXT,
   created_at        TEXT NOT NULL DEFAULT (datetime('now'))

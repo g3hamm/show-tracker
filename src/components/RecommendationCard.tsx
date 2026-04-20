@@ -56,6 +56,7 @@ export function RecommendationCard({ rec }: { rec: RecommendationRow }) {
             tmdbId={rec.tmdb_id}
             mediaType={mediaType}
             recommenderName={rec.recommender_name}
+            recommenderEmail={rec.recommender_email}
             recommendationId={rec.id}
           />
         )}
