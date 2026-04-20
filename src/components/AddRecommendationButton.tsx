@@ -6,9 +6,13 @@ import { dismissRecommendation } from "@/lib/recommendations/actions";
 
 export function AddRecommendationButton({
   tmdbId,
+  mediaType,
+  recommenderName,
   recommendationId,
 }: {
   tmdbId: number;
+  mediaType: "show" | "movie";
+  recommenderName: string;
   recommendationId: string;
 }) {
   const [pending, startTransition] = useTransition();
@@ -18,8 +22,7 @@ export function AddRecommendationButton({
     setErr(null);
     startTransition(async () => {
       try {
-        await addShow(tmdbId);
-        // Clean up the inbox entry now that it's tracked.
+        await addShow(tmdbId, mediaType, recommenderName);
         await dismissRecommendation(recommendationId);
       } catch (e) {
         setErr(e instanceof Error ? e.message : "Failed");

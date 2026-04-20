@@ -19,6 +19,7 @@ export interface ShowRow {
   current_episode: number | null;
   archived: boolean;
   last_refreshed_at: string;
+  recommended_by: string | null;
   added_by: string | null;
   created_at: string;
   added_by_name: string | null;

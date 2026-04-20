@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS shows (
   current_episode   INTEGER,
   archived          INTEGER NOT NULL DEFAULT 0,  -- 0 = false, 1 = true
   last_refreshed_at TEXT NOT NULL DEFAULT (datetime('now')),
+  recommended_by    TEXT,                    -- name of person who recommended
   added_by          TEXT REFERENCES users(id) ON DELETE SET NULL,
   created_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -49,6 +50,7 @@ CREATE TABLE IF NOT EXISTS recommendations (
   poster_path       TEXT,
   recommender_name  TEXT NOT NULL CHECK (length(recommender_name) BETWEEN 1 AND 60),
   note              TEXT CHECK (note IS NULL OR length(note) <= 1000),
+  overview          TEXT,
   created_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

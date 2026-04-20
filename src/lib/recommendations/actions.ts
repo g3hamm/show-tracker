@@ -14,6 +14,7 @@ export interface PublicSearchResult {
   name: string;
   posterPath: string | null;
   date: string | null;
+  overview: string | null;
 }
 
 const searchHits = new Map<string, number[]>();
@@ -64,6 +65,7 @@ export async function publicSearchShows(
     name: r.name,
     posterPath: r.poster_path,
     date: r.first_air_date,
+    overview: r.overview || null,
   }));
 
   const movieResults: PublicSearchResult[] = movieRes.results.slice(0, 5).map((r) => ({
@@ -72,6 +74,7 @@ export async function publicSearchShows(
     name: r.title,
     posterPath: r.poster_path,
     date: r.release_date,
+    overview: r.overview || null,
   }));
 
   return [...tvResults, ...movieResults];
@@ -85,6 +88,7 @@ export interface RecommendInput {
   mediaType?: "show" | "movie";
   tmdbId?: number | null;
   posterPath?: string | null;
+  overview?: string | null;
   note?: string;
   website?: string;
   elapsedMs?: number;
@@ -151,8 +155,8 @@ export async function submitRecommendation(
   try {
     const id = crypto.randomUUID();
     await getTurso().execute({
-      sql: `INSERT INTO recommendations (id, media_type, tmdb_id, title, poster_path, recommender_name, note)
-            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      sql: `INSERT INTO recommendations (id, media_type, tmdb_id, title, poster_path, recommender_name, note, overview)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         id, input.mediaType ?? "show",
         input.tmdbId ?? null,
@@ -160,6 +164,7 @@ export async function submitRecommendation(
         input.posterPath ?? null,
         name,
         note.length > 0 ? note : null,
+        input.overview ?? null,
       ],
     });
   } catch {

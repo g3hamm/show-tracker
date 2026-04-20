@@ -8,6 +8,7 @@ export interface RecommendationRow {
   poster_path: string | null;
   recommender_name: string;
   note: string | null;
+  overview: string | null;
   created_at: string;
 }
 
@@ -23,6 +24,7 @@ export async function listRecommendations(): Promise<RecommendationRow[]> {
     poster_path: r.poster_path as string | null,
     recommender_name: r.recommender_name as string,
     note: r.note as string | null,
+    overview: r.overview as string | null,
     created_at: r.created_at as string,
   }));
 }

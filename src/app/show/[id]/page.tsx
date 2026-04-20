@@ -67,6 +67,11 @@ export default async function ShowDetailPage({ params }: PageProps) {
             {show.status && <span>· {show.status}</span>}
             {show.added_by_name && <span>· Added by {show.added_by_name}</span>}
           </div>
+          {show.recommended_by && (
+            <p className="text-xs text-amber-400 mt-2">
+              Recommended by {show.recommended_by}
+            </p>
+          )}
 
           {show.overview && (
             <p className="text-sm text-[color:var(--foreground)]/90 mt-4 leading-relaxed">

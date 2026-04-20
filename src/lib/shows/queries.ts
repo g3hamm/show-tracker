@@ -26,6 +26,7 @@ function mapRow(r: any): ShowRow {
     current_episode: r.current_episode,
     archived: r.archived === 1,
     last_refreshed_at: r.last_refreshed_at,
+    recommended_by: r.recommended_by ?? null,
     added_by: r.added_by,
     created_at: r.created_at,
     added_by_name: r.display_name ?? null,

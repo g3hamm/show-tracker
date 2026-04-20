@@ -91,6 +91,7 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
         mediaType: picked?.mediaType ?? "show",
         tmdbId: picked?.tmdbId ?? null,
         posterPath: picked?.posterPath ?? null,
+        overview: picked?.overview ?? null,
         note,
         website,
         elapsedMs: Date.now() - mountedAt.current,

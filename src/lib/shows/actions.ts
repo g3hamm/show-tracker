@@ -66,8 +66,7 @@ export async function searchShows(query: string): Promise<SearchResult[]> {
   return [...tvResults, ...movieResults];
 }
 
-async function upsertMedia(row: MediaRowFromTmdb, userId: string) {
-  // Use media_type + tmdb_id to find existing (since tmdb IDs overlap between TV and movies)
+async function upsertMedia(row: MediaRowFromTmdb, userId: string, recommendedBy?: string | null) {
   const existing = await getTurso().execute({
     sql: "SELECT id FROM shows WHERE tmdb_id = ? AND media_type = ?",
     args: [row.tmdb_id, row.media_type],
@@ -95,8 +94,8 @@ async function upsertMedia(row: MediaRowFromTmdb, userId: string) {
     await getTurso().execute({
       sql: `INSERT INTO shows (id, media_type, tmdb_id, name, poster_path, backdrop_path,
             overview, status, first_air_date, next_episode, last_episode,
-            next_air_date, last_air_date, last_refreshed_at, added_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            next_air_date, last_air_date, last_refreshed_at, recommended_by, added_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         id, row.media_type, row.tmdb_id, row.name,
         row.poster_path, row.backdrop_path, row.overview, row.status,
@@ -104,13 +103,17 @@ async function upsertMedia(row: MediaRowFromTmdb, userId: string) {
         row.next_episode ? JSON.stringify(row.next_episode) : null,
         row.last_episode ? JSON.stringify(row.last_episode) : null,
         row.next_air_date, row.last_air_date,
-        row.last_refreshed_at, userId,
+        row.last_refreshed_at, recommendedBy ?? null, userId,
       ],
     });
   }
 }
 
-export async function addShow(tmdbId: number, mediaType: "show" | "movie" = "show"): Promise<void> {
+export async function addShow(
+  tmdbId: number,
+  mediaType: "show" | "movie" = "show",
+  recommendedBy?: string | null,
+): Promise<void> {
   const userId = await requireUser();
   await ensureUser(userId);
 
@@ -123,7 +126,7 @@ export async function addShow(tmdbId: number, mediaType: "show" | "movie" = "sho
     row = mapTvDetailsToRow(details);
   }
 
-  await upsertMedia(row, userId);
+  await upsertMedia(row, userId, recommendedBy);
   revalidatePath("/");
   revalidatePath("/search");
 }
