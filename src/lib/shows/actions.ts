@@ -150,38 +150,68 @@ export async function removeShow(id: string): Promise<void> {
 
 export async function archiveShow(id: string, archived: boolean): Promise<void> {
   await requireUser();
-  await getTurso().execute({
-    sql: "UPDATE shows SET archived = ? WHERE id = ?",
-    args: [archived ? 1 : 0, id],
-  });
 
-  // When archiving (finishing), send "we watched it" email to recommender
-  if (archived && emailEnabled()) {
+  // When finishing a TV show, snap progress to the latest aired episode
+  if (archived) {
     try {
-      const result = await getTurso().execute({
-        sql: "SELECT name, media_type, recommended_by, recommended_by_email FROM shows WHERE id = ?",
+      const showResult = await getTurso().execute({
+        sql: "SELECT tmdb_id, media_type, name, recommended_by, recommended_by_email FROM shows WHERE id = ?",
         args: [id],
       });
-      const show = result.rows[0];
-      if (show?.recommended_by_email) {
-        const fromEmail = process.env.RESEND_FROM ?? "HAMMFLIX <onboarding@resend.dev>";
-        const { subject, html } = watchedItEmail({
-          recommenderName: show.recommended_by as string,
-          title: show.name as string,
-          mediaType: show.media_type as string,
+      const show = showResult.rows[0];
+      if (show && show.media_type === "show" && show.tmdb_id) {
+        const details = await tmdbGetTv(show.tmdb_id as number);
+        const lastEp = details.last_episode_to_air;
+        if (lastEp) {
+          await getTurso().execute({
+            sql: "UPDATE shows SET archived = 1, current_season = ?, current_episode = ? WHERE id = ?",
+            args: [lastEp.season_number, lastEp.episode_number, id],
+          });
+        } else {
+          await getTurso().execute({
+            sql: "UPDATE shows SET archived = 1 WHERE id = ?",
+            args: [id],
+          });
+        }
+      } else {
+        await getTurso().execute({
+          sql: "UPDATE shows SET archived = 1 WHERE id = ?",
+          args: [id],
         });
-        getResend()
-          .emails.send({
-            from: fromEmail,
-            to: show.recommended_by_email as string,
-            subject,
-            html,
-          })
-          .catch(() => {});
+      }
+
+      // Send "we watched it" email to recommender
+      if (show && emailEnabled()) {
+        if (show.recommended_by_email) {
+          const fromEmail = process.env.RESEND_FROM ?? "HAMMFLIX <onboarding@resend.dev>";
+          const { subject, html } = watchedItEmail({
+            recommenderName: show.recommended_by as string,
+            title: show.name as string,
+            mediaType: show.media_type as string,
+          });
+          getResend()
+            .emails.send({
+              from: fromEmail,
+              to: show.recommended_by_email as string,
+              subject,
+              html,
+            })
+            .catch(() => {});
+        }
       }
     } catch {
-      // Non-critical — don't block archiving
+      // Fallback: just archive without updating progress
+      await getTurso().execute({
+        sql: "UPDATE shows SET archived = 1 WHERE id = ?",
+        args: [id],
+      });
     }
+  } else {
+    // Unarchiving
+    await getTurso().execute({
+      sql: "UPDATE shows SET archived = 0 WHERE id = ?",
+      args: [id],
+    });
   }
 
   revalidatePath("/");
@@ -216,13 +246,17 @@ export async function rateShow(
 }
 
 // Refresh all tracked media (shows + movies).
-export async function refreshAllShows(): Promise<{ refreshed: number; failed: number }> {
+// For archived TV shows: if TMDB reports a new episode beyond what we
+// had when the user hit "Finish", automatically unarchive the show
+// so it reappears in the active tracker.
+export async function refreshAllShows(): Promise<{ refreshed: number; failed: number; unarchived: number }> {
   const result = await getTurso().execute(
-    "SELECT id, tmdb_id, media_type FROM shows WHERE tmdb_id IS NOT NULL",
+    "SELECT id, tmdb_id, media_type, archived, current_season, current_episode FROM shows WHERE tmdb_id IS NOT NULL",
   );
 
   let refreshed = 0;
   let failed = 0;
+  let unarchived = 0;
   const CHUNK = 5;
   const rows = result.rows;
 
@@ -232,6 +266,9 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
       batch.map(async (s) => {
         const tmdbId = s.tmdb_id as number;
         const mediaType = s.media_type as string;
+        const isArchived = (s.archived as number) === 1;
+        const savedSeason = s.current_season as number | null;
+        const savedEpisode = s.current_episode as number | null;
 
         let row: MediaRowFromTmdb;
         if (mediaType === "movie") {
@@ -242,12 +279,22 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
           row = mapTvDetailsToRow(details);
         }
 
+        // Check if an archived TV show has new episodes
+        let shouldUnarchive = false;
+        if (isArchived && mediaType === "show" && row.last_episode && savedSeason != null && savedEpisode != null) {
+          const newSeason = row.last_episode.season_number;
+          const newEpisode = row.last_episode.episode_number;
+          if (newSeason > savedSeason || (newSeason === savedSeason && newEpisode > savedEpisode)) {
+            shouldUnarchive = true;
+          }
+        }
+
         await getTurso().execute({
           sql: `UPDATE shows SET name = ?, poster_path = ?, backdrop_path = ?,
                 overview = ?, status = ?, first_air_date = ?,
                 next_episode = ?, last_episode = ?,
                 next_air_date = ?, last_air_date = ?,
-                last_refreshed_at = ?
+                last_refreshed_at = ?${shouldUnarchive ? ", archived = 0" : ""}
                 WHERE id = ?`,
           args: [
             row.name, row.poster_path, row.backdrop_path,
@@ -258,6 +305,8 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
             row.last_refreshed_at, s.id as string,
           ],
         });
+
+        if (shouldUnarchive) unarchived += 1;
       }),
     );
     for (const r of results) {
@@ -266,7 +315,7 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
     }
   }
 
-  return { refreshed, failed };
+  return { refreshed, failed, unarchived };
 }
 
 export async function refreshAll(): Promise<{ refreshed: number; failed: number }> {
