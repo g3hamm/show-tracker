@@ -17,15 +17,21 @@ export function StarRating({
   const [currentReview, setCurrentReview] = useState(review ?? "");
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   function save() {
+    setError(null);
     startTransition(async () => {
-      await rateShow(
-        showId,
-        currentRating > 0 ? currentRating : null,
-        currentReview.trim().length > 0 ? currentReview.trim() : null,
-      );
-      setEditing(false);
+      try {
+        await rateShow(
+          showId,
+          currentRating > 0 ? currentRating : null,
+          currentReview.trim().length > 0 ? currentReview.trim() : null,
+        );
+        setEditing(false);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to save");
+      }
     });
   }
 
@@ -70,26 +76,32 @@ export function StarRating({
             className="w-full px-3 py-2 rounded text-xs bg-[color:var(--surface)] border border-[color:var(--border)] focus:outline-none focus:border-[color:var(--accent)] resize-none"
           />
           {editing && (
-            <div className="flex gap-2 mt-1">
-              <button
-                type="button"
-                onClick={save}
-                disabled={pending}
-                className="text-[11px] px-3 py-1 rounded bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold transition-colors"
-              >
-                {pending ? "Saving..." : "Save"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setCurrentRating(rating ?? 0);
-                  setCurrentReview(review ?? "");
-                  setEditing(false);
-                }}
-                className="text-[11px] px-3 py-1 text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
-              >
-                Cancel
-              </button>
+            <div className="flex flex-col gap-1 mt-1">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={save}
+                  disabled={pending}
+                  className="text-[11px] px-3 py-1 rounded bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold transition-colors"
+                >
+                  {pending ? "Saving..." : "Save"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentRating(rating ?? 0);
+                    setCurrentReview(review ?? "");
+                    setEditing(false);
+                    setError(null);
+                  }}
+                  className="text-[11px] px-3 py-1 text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
+                >
+                  Cancel
+                </button>
+              </div>
+              {error && (
+                <p className="text-[10px] text-[color:var(--danger)]">{error}</p>
+              )}
             </div>
           )}
         </div>
