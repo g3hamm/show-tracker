@@ -58,6 +58,11 @@ export function FinishedSection({ shows }: { shows: ShowRow[] }) {
                   <span className="text-amber-400">Rec&apos;d by {show.recommended_by}</span>
                 )}
               </div>
+              {show.recommendation_note && (
+                <p className="text-[11px] text-[color:var(--foreground)]/60 italic mt-1 line-clamp-2">
+                  &ldquo;{show.recommendation_note}&rdquo;
+                </p>
+              )}
               <div className="mt-2">
                 <StarRating showId={show.id} rating={show.rating} review={show.review} />
               </div>

@@ -102,6 +102,11 @@ export function ShowCard({ show, badge }: ShowCardProps) {
               Rec&apos;d by {show.recommended_by}
             </p>
           )}
+          {show.recommendation_note && (
+            <p className="text-[10px] text-[color:var(--foreground)]/60 italic truncate mt-0.5">
+              &ldquo;{show.recommendation_note}&rdquo;
+            </p>
+          )}
           {show.added_by_name && !show.recommended_by && (
             <p className="text-[10px] text-[color:var(--muted)] truncate mt-1">
               Added by {show.added_by_name}

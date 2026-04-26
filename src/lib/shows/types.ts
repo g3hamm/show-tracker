@@ -23,6 +23,7 @@ export interface ShowRow {
   last_refreshed_at: string;
   recommended_by: string | null;
   recommended_by_email: string | null;
+  recommendation_note: string | null;
   added_by: string | null;
   created_at: string;
   added_by_name: string | null;

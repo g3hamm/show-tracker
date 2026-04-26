@@ -57,6 +57,7 @@ export function RecommendationCard({ rec }: { rec: RecommendationRow }) {
             mediaType={mediaType}
             recommenderName={rec.recommender_name}
             recommenderEmail={rec.recommender_email}
+            recommendationNote={rec.note}
             recommendationId={rec.id}
           />
         )}

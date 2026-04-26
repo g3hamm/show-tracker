@@ -9,12 +9,14 @@ export function AddRecommendationButton({
   mediaType,
   recommenderName,
   recommenderEmail,
+  recommendationNote,
   recommendationId,
 }: {
   tmdbId: number;
   mediaType: "show" | "movie";
   recommenderName: string;
   recommenderEmail: string | null;
+  recommendationNote: string | null;
   recommendationId: string;
 }) {
   const [pending, startTransition] = useTransition();
@@ -24,7 +26,7 @@ export function AddRecommendationButton({
     setErr(null);
     startTransition(async () => {
       try {
-        await addShow(tmdbId, mediaType, recommenderName, recommenderEmail);
+        await addShow(tmdbId, mediaType, recommenderName, recommenderEmail, recommendationNote);
         await dismissRecommendation(recommendationId);
       } catch (e) {
         setErr(e instanceof Error ? e.message : "Failed");

@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS shows (
   last_refreshed_at TEXT NOT NULL DEFAULT (datetime('now')),
   recommended_by    TEXT,                    -- name of person who recommended
   recommended_by_email TEXT,                 -- email of recommender (for notifications)
+  recommendation_note TEXT,                  -- what they said about it
   added_by          TEXT REFERENCES users(id) ON DELETE SET NULL,
   created_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );

@@ -71,6 +71,7 @@ export async function searchShows(query: string): Promise<SearchResult[]> {
 interface RecommenderInfo {
   name?: string | null;
   email?: string | null;
+  note?: string | null;
 }
 
 async function upsertMedia(row: MediaRowFromTmdb, userId: string, recommender?: RecommenderInfo | null) {
@@ -101,8 +102,8 @@ async function upsertMedia(row: MediaRowFromTmdb, userId: string, recommender?: 
     await getTurso().execute({
       sql: `INSERT INTO shows (id, media_type, tmdb_id, name, poster_path, backdrop_path,
             overview, status, first_air_date, next_episode, last_episode,
-            next_air_date, last_air_date, last_refreshed_at, recommended_by, recommended_by_email, added_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            next_air_date, last_air_date, last_refreshed_at, recommended_by, recommended_by_email, recommendation_note, added_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         id, row.media_type, row.tmdb_id, row.name,
         row.poster_path, row.backdrop_path, row.overview, row.status,
@@ -113,6 +114,7 @@ async function upsertMedia(row: MediaRowFromTmdb, userId: string, recommender?: 
         row.last_refreshed_at,
         recommender?.name ?? null,
         recommender?.email ?? null,
+        recommender?.note ?? null,
         userId,
       ],
     });
@@ -124,6 +126,7 @@ export async function addShow(
   mediaType: "show" | "movie" = "show",
   recommendedBy?: string | null,
   recommendedByEmail?: string | null,
+  recommendationNote?: string | null,
 ): Promise<void> {
   const userId = await requireUser();
   await ensureUser(userId);
@@ -137,7 +140,7 @@ export async function addShow(
     row = mapTvDetailsToRow(details);
   }
 
-  await upsertMedia(row, userId, { name: recommendedBy, email: recommendedByEmail });
+  await upsertMedia(row, userId, { name: recommendedBy, email: recommendedByEmail, note: recommendationNote });
   revalidatePath("/");
   revalidatePath("/search");
 }

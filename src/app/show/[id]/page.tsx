@@ -73,6 +73,11 @@ export default async function ShowDetailPage({ params }: PageProps) {
               Recommended by {show.recommended_by}
             </p>
           )}
+          {show.recommendation_note && (
+            <p className="text-sm text-[color:var(--foreground)]/70 italic mt-1">
+              &ldquo;{show.recommendation_note}&rdquo;
+            </p>
+          )}
 
           {show.overview && (
             <p className="text-sm text-[color:var(--foreground)]/90 mt-4 leading-relaxed">

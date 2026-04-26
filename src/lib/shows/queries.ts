@@ -30,6 +30,7 @@ function mapRow(r: any): ShowRow {
     last_refreshed_at: r.last_refreshed_at,
     recommended_by: r.recommended_by ?? null,
     recommended_by_email: r.recommended_by_email ?? null,
+    recommendation_note: r.recommendation_note as string | null ?? null,
     added_by: r.added_by,
     created_at: r.created_at,
     added_by_name: r.display_name ?? null,
