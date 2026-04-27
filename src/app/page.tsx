@@ -9,6 +9,7 @@ import { listRecommendations } from "@/lib/recommendations/queries";
 import { ShowGrid } from "@/components/ShowGrid";
 import { RecommendationCard } from "@/components/RecommendationCard";
 import { FinishedSection } from "@/components/FinishedSection";
+import { RefreshNowButton } from "@/components/RefreshNowButton";
 import { SignOutButton } from "@/components/SignOutButton";
 import { Logo } from "@/components/Logo";
 
@@ -44,6 +45,7 @@ export default async function DashboardPage() {
             >
               Share link
             </Link>
+            <RefreshNowButton />
           </nav>
         </div>
       </header>
