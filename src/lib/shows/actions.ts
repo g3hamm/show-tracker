@@ -86,7 +86,7 @@ async function upsertMedia(row: MediaRowFromTmdb, userId: string, recommender?: 
             overview = ?, status = ?, first_air_date = ?,
             next_episode = ?, last_episode = ?,
             next_air_date = ?, last_air_date = ?,
-            last_refreshed_at = ?
+            watch_providers = ?, last_refreshed_at = ?
             WHERE tmdb_id = ? AND media_type = ?`,
       args: [
         row.name, row.poster_path, row.backdrop_path,
@@ -94,6 +94,7 @@ async function upsertMedia(row: MediaRowFromTmdb, userId: string, recommender?: 
         row.next_episode ? JSON.stringify(row.next_episode) : null,
         row.last_episode ? JSON.stringify(row.last_episode) : null,
         row.next_air_date, row.last_air_date,
+        row.watch_providers ? JSON.stringify(row.watch_providers) : null,
         row.last_refreshed_at, row.tmdb_id, row.media_type,
       ],
     });
@@ -102,8 +103,9 @@ async function upsertMedia(row: MediaRowFromTmdb, userId: string, recommender?: 
     await getTurso().execute({
       sql: `INSERT INTO shows (id, media_type, tmdb_id, name, poster_path, backdrop_path,
             overview, status, first_air_date, next_episode, last_episode,
-            next_air_date, last_air_date, last_refreshed_at, recommended_by, recommended_by_email, recommendation_note, added_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            next_air_date, last_air_date, watch_providers, last_refreshed_at,
+            recommended_by, recommended_by_email, recommendation_note, added_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         id, row.media_type, row.tmdb_id, row.name,
         row.poster_path, row.backdrop_path, row.overview, row.status,
@@ -111,6 +113,7 @@ async function upsertMedia(row: MediaRowFromTmdb, userId: string, recommender?: 
         row.next_episode ? JSON.stringify(row.next_episode) : null,
         row.last_episode ? JSON.stringify(row.last_episode) : null,
         row.next_air_date, row.last_air_date,
+        row.watch_providers ? JSON.stringify(row.watch_providers) : null,
         row.last_refreshed_at,
         recommender?.name ?? null,
         recommender?.email ?? null,
@@ -297,6 +300,7 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
                 overview = ?, status = ?, first_air_date = ?,
                 next_episode = ?, last_episode = ?,
                 next_air_date = ?, last_air_date = ?,
+                watch_providers = ?,
                 last_refreshed_at = ?${shouldUnarchive ? ", archived = 0" : ""}
                 WHERE id = ?`,
           args: [
@@ -305,6 +309,7 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
             row.next_episode ? JSON.stringify(row.next_episode) : null,
             row.last_episode ? JSON.stringify(row.last_episode) : null,
             row.next_air_date, row.last_air_date,
+            row.watch_providers ? JSON.stringify(row.watch_providers) : null,
             row.last_refreshed_at, s.id as string,
           ],
         });

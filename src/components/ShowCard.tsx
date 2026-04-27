@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ShowRow } from "@/lib/shows/types";
 import { tmdbPoster } from "@/lib/tmdb/client";
 import { formatShortDate, relativeDay, todayInAppTz } from "@/lib/dates";
+import { WatchProviders } from "./WatchProviders";
 import { RemoveShowButton } from "./RemoveShowButton";
 import { ArchiveToggle } from "./ArchiveToggle";
 
@@ -97,6 +98,9 @@ export function ShowCard({ show, badge }: ShowCardProps) {
               {subline}
             </p>
           )}
+          <div className="mt-1">
+            <WatchProviders providers={show.watch_providers} size="sm" />
+          </div>
           {show.recommended_by && (
             <p className="text-[10px] text-amber-400 truncate mt-1">
               Rec&apos;d by {show.recommended_by}

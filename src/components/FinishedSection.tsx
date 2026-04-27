@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ShowRow } from "@/lib/shows/types";
 import { tmdbPoster } from "@/lib/tmdb/client";
+import { WatchProviders } from "./WatchProviders";
 import { StarRating } from "./StarRating";
 import { ArchiveToggle } from "./ArchiveToggle";
 
@@ -63,6 +64,9 @@ export function FinishedSection({ shows }: { shows: ShowRow[] }) {
                   &ldquo;{show.recommendation_note}&rdquo;
                 </p>
               )}
+              <div className="mt-1.5">
+                <WatchProviders providers={show.watch_providers} size="sm" />
+              </div>
               <div className="mt-2">
                 <StarRating showId={show.id} rating={show.rating} review={show.review} />
               </div>

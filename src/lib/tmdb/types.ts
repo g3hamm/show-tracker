@@ -38,6 +38,7 @@ export interface TmdbTvDetails {
   number_of_episodes: number;
   next_episode_to_air: TmdbEpisode | null;
   last_episode_to_air: TmdbEpisode | null;
+  "watch/providers"?: TmdbWatchProviderResults;
 }
 
 // --- Movies ---
@@ -67,4 +68,32 @@ export interface TmdbMovieDetails {
   status: string;
   release_date: string | null;
   runtime: number | null;
+  "watch/providers"?: TmdbWatchProviderResults;
+}
+
+// --- Watch Providers (via JustWatch partnership) ---
+
+export interface StoredWatchProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+}
+
+export interface TmdbWatchProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+  display_priority: number;
+}
+
+export interface TmdbWatchProviderCountry {
+  link: string;
+  flatrate?: TmdbWatchProvider[];
+  rent?: TmdbWatchProvider[];
+  buy?: TmdbWatchProvider[];
+  free?: TmdbWatchProvider[];
+}
+
+export interface TmdbWatchProviderResults {
+  results: Record<string, TmdbWatchProviderCountry>;
 }

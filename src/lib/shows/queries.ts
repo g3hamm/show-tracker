@@ -1,7 +1,7 @@
 import { getTurso } from "@/lib/turso/client";
 import { addDays, todayInAppTz } from "@/lib/dates";
 import type { ShowRow } from "./types";
-import type { TmdbEpisode } from "@/lib/tmdb/types";
+import type { TmdbEpisode, StoredWatchProvider } from "@/lib/tmdb/types";
 
 export const COMING_SOON_DAYS = 14;
 export const NEW_THIS_WEEK_DAYS = 7;
@@ -27,6 +27,7 @@ function mapRow(r: any): ShowRow {
     archived: r.archived === 1,
     rating: r.rating as number | null ?? null,
     review: r.review as string | null ?? null,
+    watch_providers: r.watch_providers ? JSON.parse(r.watch_providers) as StoredWatchProvider[] : null,
     last_refreshed_at: r.last_refreshed_at,
     recommended_by: r.recommended_by ?? null,
     recommended_by_email: r.recommended_by_email ?? null,

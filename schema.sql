@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS shows (
   archived          INTEGER NOT NULL DEFAULT 0,  -- 0 = false, 1 = true
   rating            INTEGER,                     -- 1-5 stars
   review            TEXT,                        -- personal notes / inside jokes
+  watch_providers   TEXT,                        -- JSON array of streaming providers
   last_refreshed_at TEXT NOT NULL DEFAULT (datetime('now')),
   recommended_by    TEXT,                    -- name of person who recommended
   recommended_by_email TEXT,                 -- email of recommender (for notifications)

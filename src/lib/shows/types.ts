@@ -1,4 +1,4 @@
-import type { TmdbEpisode } from "@/lib/tmdb/types";
+import type { TmdbEpisode, StoredWatchProvider } from "@/lib/tmdb/types";
 
 // Shape of a row read from the shows table, enriched with the added-by display name.
 export interface ShowRow {
@@ -20,6 +20,7 @@ export interface ShowRow {
   archived: boolean;
   rating: number | null;
   review: string | null;
+  watch_providers: StoredWatchProvider[] | null;
   last_refreshed_at: string;
   recommended_by: string | null;
   recommended_by_email: string | null;

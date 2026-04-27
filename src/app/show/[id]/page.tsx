@@ -8,6 +8,7 @@ import { RemoveShowButton } from "@/components/RemoveShowButton";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { EpisodeProgressForm } from "@/components/EpisodeProgressForm";
 import { StarRating } from "@/components/StarRating";
+import { WatchProviders } from "@/components/WatchProviders";
 import { Logo } from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
@@ -83,6 +84,15 @@ export default async function ShowDetailPage({ params }: PageProps) {
             <p className="text-sm text-[color:var(--foreground)]/90 mt-4 leading-relaxed">
               {show.overview}
             </p>
+          )}
+
+          {show.watch_providers && show.watch_providers.length > 0 && (
+            <div className="mt-4">
+              <p className="text-[10px] uppercase tracking-wider text-[color:var(--muted)] mb-1.5">
+                Streaming on
+              </p>
+              <WatchProviders providers={show.watch_providers} size="md" />
+            </div>
           )}
 
           {!isMovie && (

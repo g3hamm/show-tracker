@@ -43,7 +43,7 @@ export function tmdbGetTv(tmdbId: number) {
   // Bypass cache on refresh to get fresh episode data.
   return tmdb<TmdbTvDetails>(
     `/tv/${tmdbId}`,
-    { append_to_response: "external_ids" },
+    { append_to_response: "external_ids,watch/providers" },
     { revalidate: 0 },
   );
 }
@@ -58,7 +58,7 @@ export function tmdbSearchMovie(query: string) {
 export function tmdbGetMovie(tmdbId: number) {
   return tmdb<TmdbMovieDetails>(
     `/movie/${tmdbId}`,
-    {},
+    { append_to_response: "watch/providers" },
     { revalidate: 0 },
   );
 }
@@ -68,6 +68,16 @@ export type PosterSize = "w92" | "w154" | "w185" | "w342" | "w500" | "w780" | "o
 export function tmdbPoster(
   path: string | null | undefined,
   size: PosterSize = "w342",
+): string | null {
+  if (!path) return null;
+  return `${IMAGE_BASE}/${size}${path}`;
+}
+
+export type LogoSize = "w45" | "w92" | "w154" | "w185";
+
+export function tmdbLogo(
+  path: string | null | undefined,
+  size: LogoSize = "w45",
 ): string | null {
   if (!path) return null;
   return `${IMAGE_BASE}/${size}${path}`;

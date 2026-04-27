@@ -1,4 +1,21 @@
-import type { TmdbTvDetails, TmdbMovieDetails } from "./types";
+import type { TmdbTvDetails, TmdbMovieDetails, TmdbWatchProviderResults, StoredWatchProvider } from "./types";
+
+const WATCH_REGION = process.env.WATCH_REGION ?? "US";
+
+export function extractWatchProviders(
+  wpData: TmdbWatchProviderResults | undefined,
+): StoredWatchProvider[] | null {
+  if (!wpData?.results) return null;
+  const country = wpData.results[WATCH_REGION];
+  if (!country) return null;
+  const providers = country.flatrate ?? country.free ?? [];
+  if (providers.length === 0) return null;
+  return providers
+    .sort((a, b) => a.display_priority - b.display_priority)
+    .map(({ provider_id, provider_name, logo_path }) => ({
+      provider_id, provider_name, logo_path,
+    }));
+}
 
 // Row shape written into public.shows table.
 export interface MediaRowFromTmdb {
@@ -15,6 +32,7 @@ export interface MediaRowFromTmdb {
   next_air_date: string | null;
   last_air_date: string | null;
   last_refreshed_at: string;
+  watch_providers: StoredWatchProvider[] | null;
 }
 
 /** @deprecated Use MediaRowFromTmdb */
@@ -35,6 +53,7 @@ export function mapTvDetailsToRow(d: TmdbTvDetails): MediaRowFromTmdb {
     next_air_date: d.next_episode_to_air?.air_date ?? null,
     last_air_date: d.last_episode_to_air?.air_date ?? null,
     last_refreshed_at: new Date().toISOString(),
+    watch_providers: extractWatchProviders(d["watch/providers"]),
   };
 }
 
@@ -53,5 +72,6 @@ export function mapMovieDetailsToRow(d: TmdbMovieDetails): MediaRowFromTmdb {
     next_air_date: null,
     last_air_date: null,
     last_refreshed_at: new Date().toISOString(),
+    watch_providers: extractWatchProviders(d["watch/providers"]),
   };
 }
