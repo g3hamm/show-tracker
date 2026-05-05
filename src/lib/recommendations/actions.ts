@@ -211,7 +211,12 @@ export interface TrackedShowInfo {
 
 export async function getTrackedShowsPublic(): Promise<TrackedShowInfo[]> {
   const result = await getTurso().execute(
-    "SELECT tmdb_id, media_type, archived FROM shows WHERE tmdb_id IS NOT NULL",
+    `SELECT s.tmdb_id, s.media_type,
+            CASE WHEN SUM(CASE WHEN qs.archived = 0 THEN 1 ELSE 0 END) > 0 THEN 0 ELSE 1 END as archived
+     FROM shows s
+     JOIN queue_shows qs ON s.id = qs.show_id
+     WHERE s.tmdb_id IS NOT NULL AND qs.private = 0
+     GROUP BY s.tmdb_id, s.media_type`,
   );
   return result.rows.map((r) => ({
     tmdbId: r.tmdb_id as number,

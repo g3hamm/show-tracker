@@ -5,6 +5,7 @@ import { addShow } from "@/lib/shows/actions";
 import { dismissRecommendation } from "@/lib/recommendations/actions";
 
 export function AddRecommendationButton({
+  queueId,
   tmdbId,
   mediaType,
   recommenderName,
@@ -12,6 +13,7 @@ export function AddRecommendationButton({
   recommendationNote,
   recommendationId,
 }: {
+  queueId: string;
   tmdbId: number;
   mediaType: "show" | "movie";
   recommenderName: string;
@@ -26,7 +28,7 @@ export function AddRecommendationButton({
     setErr(null);
     startTransition(async () => {
       try {
-        await addShow(tmdbId, mediaType, recommenderName, recommenderEmail, recommendationNote);
+        await addShow(queueId, tmdbId, mediaType, recommenderName, recommenderEmail, recommendationNote);
         await dismissRecommendation(recommendationId);
       } catch (e) {
         setErr(e instanceof Error ? e.message : "Failed");

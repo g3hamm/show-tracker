@@ -4,7 +4,7 @@ import { tmdbPoster } from "@/lib/tmdb/client";
 import { AddRecommendationButton } from "./AddRecommendationButton";
 import { DismissRecommendationButton } from "./DismissRecommendationButton";
 
-export function RecommendationCard({ rec }: { rec: RecommendationRow }) {
+export function RecommendationCard({ rec, queueId }: { rec: RecommendationRow; queueId: string }) {
   const poster = tmdbPoster(rec.poster_path, "w185");
   const mediaType = (rec.media_type === "movie" ? "movie" : "show") as "show" | "movie";
 
@@ -53,6 +53,7 @@ export function RecommendationCard({ rec }: { rec: RecommendationRow }) {
       <div className="flex gap-2">
         {rec.tmdb_id != null && (
           <AddRecommendationButton
+            queueId={queueId}
             tmdbId={rec.tmdb_id}
             mediaType={mediaType}
             recommenderName={rec.recommender_name}

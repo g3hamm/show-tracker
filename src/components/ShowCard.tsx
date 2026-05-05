@@ -21,7 +21,6 @@ export function ShowCard({ show, badge }: ShowCardProps) {
   let subline: string | null = null;
 
   if (isMovie) {
-    // Movies: show release year and status
     if (show.first_air_date) {
       subline = show.first_air_date.slice(0, 4);
     }
@@ -53,7 +52,7 @@ export function ShowCard({ show, badge }: ShowCardProps) {
 
   return (
     <div className="group relative flex flex-col rounded overflow-hidden bg-[color:var(--surface)] border border-transparent hover:scale-105 hover:shadow-xl hover:shadow-black/50 hover:z-10 transition-all duration-200">
-      <Link href={`/show/${show.id}`} className="block">
+      <Link href={`/q/${show.queue_id}/show/${show.id}`} className="block">
         <div className="aspect-[2/3] relative bg-[color:var(--surface-elevated)]">
           {poster ? (
             <Image
@@ -119,8 +118,8 @@ export function ShowCard({ show, badge }: ShowCardProps) {
         </div>
       </Link>
       <div className="px-3 pb-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <ArchiveToggle id={show.id} archived={show.archived} />
-        <RemoveShowButton id={show.id} />
+        <ArchiveToggle id={show.queue_show_id} archived={show.archived} />
+        <RemoveShowButton id={show.queue_show_id} />
       </div>
     </div>
   );

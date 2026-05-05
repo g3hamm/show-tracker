@@ -22,10 +22,10 @@ export function FinishedSection({ shows }: { shows: ShowRow[] }) {
         const isMovie = show.media_type === "movie";
         return (
           <div
-            key={show.id}
+            key={show.queue_show_id}
             className="flex gap-4 p-4 rounded-lg bg-[color:var(--surface)] border border-[color:var(--border)]"
           >
-            <Link href={`/show/${show.id}`} className="flex-shrink-0">
+            <Link href={`/q/${show.queue_id}/show/${show.id}`} className="flex-shrink-0">
               <div className="w-16 h-24 relative rounded overflow-hidden bg-[color:var(--surface-elevated)]">
                 {poster ? (
                   <Image
@@ -44,7 +44,7 @@ export function FinishedSection({ shows }: { shows: ShowRow[] }) {
             </Link>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <Link href={`/show/${show.id}`}>
+                <Link href={`/q/${show.queue_id}/show/${show.id}`}>
                   <h4 className="font-medium text-sm hover:text-[color:var(--accent)] transition-colors">{show.name}</h4>
                 </Link>
                 {isMovie && (
@@ -68,7 +68,7 @@ export function FinishedSection({ shows }: { shows: ShowRow[] }) {
                 <WatchProviders providers={show.watch_providers} size="sm" />
               </div>
               <div className="mt-2">
-                <StarRating showId={show.id} rating={show.rating} review={show.review} />
+                <StarRating showId={show.queue_show_id} rating={show.rating} review={show.review} />
               </div>
               {show.review && !show.rating && (
                 <p className="text-xs text-[color:var(--foreground)]/80 mt-1 italic line-clamp-2">
@@ -76,7 +76,7 @@ export function FinishedSection({ shows }: { shows: ShowRow[] }) {
                 </p>
               )}
               <div className="mt-2">
-                <ArchiveToggle id={show.id} archived={show.archived} />
+                <ArchiveToggle id={show.queue_show_id} archived={show.archived} />
               </div>
             </div>
           </div>

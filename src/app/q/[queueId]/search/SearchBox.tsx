@@ -5,7 +5,7 @@ import { useState, useTransition, useRef, useEffect } from "react";
 import { searchShows, addShow, type SearchResult } from "@/lib/shows/actions";
 import { tmdbPoster } from "@/lib/tmdb/client";
 
-export function SearchBox() {
+export function SearchBox({ queueId }: { queueId: string }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, startSearch] = useTransition();
@@ -41,7 +41,7 @@ export function SearchBox() {
     const key = `${r.mediaType}:${r.tmdbId}`;
     startAdd(async () => {
       try {
-        await addShow(r.tmdbId, r.mediaType);
+        await addShow(queueId, r.tmdbId, r.mediaType);
         setAddedIds((prev) => new Set(prev).add(key));
       } catch (e) {
         setError(e instanceof Error ? e.message : "Add failed");

@@ -1,8 +1,5 @@
 import { getTurso } from "@/lib/turso/client";
 
-// Public-facing show data for the /recommend page.
-// No auth needed — Turso has no RLS, and this data is intentionally public.
-
 export interface PublicShowRow {
   name: string;
   media_type: string;
@@ -15,7 +12,13 @@ export interface PublicShowRow {
 
 export async function getPublicWatchlist(): Promise<PublicShowRow[]> {
   const result = await getTurso().execute(
-    "SELECT name, media_type, poster_path, tmdb_id, current_season, current_episode, archived FROM shows WHERE archived = 0 ORDER BY name ASC",
+    `SELECT s.name, s.media_type, s.poster_path, s.tmdb_id,
+            qs.current_season, qs.current_episode
+     FROM queue_shows qs
+     JOIN shows s ON qs.show_id = s.id
+     WHERE qs.archived = 0 AND qs.private = 0
+     GROUP BY s.tmdb_id, s.media_type
+     ORDER BY s.name ASC`,
   );
   return result.rows.map((r) => ({
     name: r.name as string,
