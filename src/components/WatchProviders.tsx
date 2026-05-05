@@ -5,9 +5,10 @@ import type { StoredWatchProvider } from "@/lib/tmdb/types";
 interface WatchProvidersProps {
   providers: StoredWatchProvider[] | null;
   size?: "sm" | "md";
+  subscribedIds?: Set<number>;
 }
 
-export function WatchProviders({ providers, size = "sm" }: WatchProvidersProps) {
+export function WatchProviders({ providers, size = "sm", subscribedIds }: WatchProvidersProps) {
   if (!providers || providers.length === 0) return null;
 
   const logoSize = size === "sm" ? "w45" : "w92";
@@ -26,6 +27,7 @@ export function WatchProviders({ providers, size = "sm" }: WatchProvidersProps) 
       {shown.map((p) => {
         const src = tmdbLogo(p.logo_path, logoSize);
         if (!src) return null;
+        const dimmed = subscribedIds && !subscribedIds.has(p.provider_id);
         return (
           <Image
             key={p.provider_id}
@@ -33,8 +35,8 @@ export function WatchProviders({ providers, size = "sm" }: WatchProvidersProps) 
             alt={p.provider_name}
             width={size === "sm" ? 20 : 32}
             height={size === "sm" ? 20 : 32}
-            className={imgClass}
-            title={p.provider_name}
+            className={`${imgClass} ${dimmed ? "opacity-30 grayscale" : ""}`}
+            title={`${p.provider_name}${dimmed ? " (not subscribed)" : ""}`}
           />
         );
       })}

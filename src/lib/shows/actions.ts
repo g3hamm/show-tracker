@@ -255,6 +255,15 @@ export async function rateShow(
   revalidatePath("/");
 }
 
+export async function togglePrivate(queueShowId: string): Promise<void> {
+  await requireUser();
+  await getTurso().execute({
+    sql: "UPDATE queue_shows SET private = CASE WHEN private = 0 THEN 1 ELSE 0 END WHERE id = ?",
+    args: [queueShowId],
+  });
+  revalidatePath("/");
+}
+
 export async function refreshAllShows(): Promise<{ refreshed: number; failed: number; unarchived: number }> {
   const result = await getTurso().execute(
     "SELECT id, tmdb_id, media_type FROM shows WHERE tmdb_id IS NOT NULL",

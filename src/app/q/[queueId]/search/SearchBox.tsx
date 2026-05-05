@@ -1,11 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useTransition, useRef, useEffect } from "react";
+import { useState, useTransition, useRef, useEffect, useMemo } from "react";
 import { searchShows, addShow, type SearchResult } from "@/lib/shows/actions";
+import type { FamilyTrackingInfo } from "@/lib/shows/queries";
 import { tmdbPoster } from "@/lib/tmdb/client";
 
-export function SearchBox({ queueId }: { queueId: string }) {
+interface SearchBoxProps {
+  queueId: string;
+  trackingStatus: FamilyTrackingInfo[];
+}
+
+export function SearchBox({ queueId, trackingStatus }: SearchBoxProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, startSearch] = useTransition();
@@ -13,6 +19,21 @@ export function SearchBox({ queueId }: { queueId: string }) {
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const trackingMap = useMemo(() => {
+    const map = new Map<string, { queues: string[]; archived: boolean }>();
+    for (const t of trackingStatus) {
+      const key = `${t.media_type === "movie" ? "movie" : "show"}:${t.tmdb_id}`;
+      const entry = map.get(key);
+      if (entry) {
+        entry.queues.push(t.queue_name);
+        if (!t.archived) entry.archived = false;
+      } else {
+        map.set(key, { queues: [t.queue_name], archived: t.archived });
+      }
+    }
+    return map;
+  }, [trackingStatus]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -68,6 +89,8 @@ export function SearchBox({ queueId }: { queueId: string }) {
           const poster = tmdbPoster(r.posterPath, "w185");
           const key = `${r.mediaType}:${r.tmdbId}`;
           const isAdded = addedIds.has(key);
+          const tracking = trackingMap.get(key);
+
           return (
             <li
               key={key}
@@ -99,6 +122,19 @@ export function SearchBox({ queueId }: { queueId: string }) {
                 <p className="text-xs text-[color:var(--muted)] line-clamp-2 mt-1">
                   {r.overview || "No description."}
                 </p>
+                {tracking && (
+                  <p className="text-[10px] mt-1.5">
+                    {tracking.archived ? (
+                      <span className="text-emerald-400">
+                        Finished in {tracking.queues.join(", ")}
+                      </span>
+                    ) : (
+                      <span className="text-amber-400">
+                        Watching in {tracking.queues.join(", ")}
+                      </span>
+                    )}
+                  </p>
+                )}
               </div>
               <button
                 type="button"

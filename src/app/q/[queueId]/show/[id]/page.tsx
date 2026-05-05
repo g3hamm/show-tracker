@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getShowById } from "@/lib/shows/queries";
+import { auth } from "@clerk/nextjs/server";
+import { getShowById, getShowAcrossQueues } from "@/lib/shows/queries";
+import { getQueueById, getFamilySubscriptions } from "@/lib/families/queries";
 import { tmdbPoster } from "@/lib/tmdb/client";
 import { formatShortDate, relativeDay } from "@/lib/dates";
 import { RemoveShowButton } from "@/components/RemoveShowButton";
@@ -9,6 +11,8 @@ import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { EpisodeProgressForm } from "@/components/EpisodeProgressForm";
 import { StarRating } from "@/components/StarRating";
 import { WatchProviders } from "@/components/WatchProviders";
+import { CrossQueueProgress } from "@/components/CrossQueueProgress";
+import { PrivateToggle } from "@/components/PrivateToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +22,19 @@ interface PageProps {
 
 export default async function ShowDetailPage({ params }: PageProps) {
   const { queueId, id } = await params;
+  const { userId } = await auth();
   const show = await getShowById(queueId, id);
   if (!show) notFound();
 
+  const queue = await getQueueById(queueId);
+  const isSoloQueue = queue?.type === "solo" && queue.owner_id === userId;
+
+  const [crossQueue, subscriptions] = await Promise.all([
+    queue ? getShowAcrossQueues(id, queue.family_id, queueId) : [],
+    queue ? getFamilySubscriptions(queue.family_id) : [],
+  ]);
+
+  const subscribedIds = new Set(subscriptions.map((s) => s.provider_id));
   const poster = tmdbPoster(show.poster_path, "w500");
   const isMovie = show.media_type === "movie";
 
@@ -84,7 +98,11 @@ export default async function ShowDetailPage({ params }: PageProps) {
               <p className="text-[10px] uppercase tracking-wider text-[color:var(--muted)] mb-1.5">
                 Streaming on
               </p>
-              <WatchProviders providers={show.watch_providers} size="md" />
+              <WatchProviders
+                providers={show.watch_providers}
+                size="md"
+                subscribedIds={subscribedIds.size > 0 ? subscribedIds : undefined}
+              />
             </div>
           )}
 
@@ -115,9 +133,18 @@ export default async function ShowDetailPage({ params }: PageProps) {
             </>
           )}
 
+          {crossQueue.length > 0 && (
+            <div className="mt-6">
+              <CrossQueueProgress entries={crossQueue} />
+            </div>
+          )}
+
           <div className="flex gap-3 mt-6">
             <ArchiveToggle id={show.queue_show_id} archived={show.archived} />
             <RemoveShowButton id={show.queue_show_id} />
+            {isSoloQueue && (
+              <PrivateToggle queueShowId={show.queue_show_id} isPrivate={show.is_private} />
+            )}
           </div>
 
           {show.archived && (

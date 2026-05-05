@@ -101,6 +101,70 @@ export async function getFinishedShows(queueId: string): Promise<ShowRow[]> {
   return result.rows.map(mapRow);
 }
 
+export interface CrossQueueEntry {
+  queue_name: string;
+  queue_type: "solo" | "group";
+  current_season: number | null;
+  current_episode: number | null;
+  archived: boolean;
+  owner_display_name: string | null;
+}
+
+export async function getShowAcrossQueues(
+  showId: string,
+  familyId: string,
+  excludeQueueId?: string,
+): Promise<CrossQueueEntry[]> {
+  const result = await getTurso().execute({
+    sql: `SELECT q.name as queue_name, q.type as queue_type,
+                 qs.current_season, qs.current_episode, qs.archived,
+                 u.display_name as owner_display_name
+          FROM queue_shows qs
+          JOIN queues q ON qs.queue_id = q.id
+          LEFT JOIN users u ON q.owner_id = u.id
+          WHERE qs.show_id = ? AND q.family_id = ? AND qs.private = 0
+                ${excludeQueueId ? "AND qs.queue_id != ?" : ""}
+          ORDER BY q.type ASC, q.name ASC`,
+    args: excludeQueueId
+      ? [showId, familyId, excludeQueueId]
+      : [showId, familyId],
+  });
+  return result.rows.map((r) => ({
+    queue_name: r.queue_name as string,
+    queue_type: r.queue_type as "solo" | "group",
+    current_season: r.current_season as number | null,
+    current_episode: r.current_episode as number | null,
+    archived: (r.archived as number) === 1,
+    owner_display_name: r.owner_display_name as string | null,
+  }));
+}
+
+export interface FamilyTrackingInfo {
+  tmdb_id: number;
+  media_type: string;
+  queue_name: string;
+  archived: boolean;
+}
+
+export async function getFamilyTrackingStatus(
+  familyId: string,
+): Promise<FamilyTrackingInfo[]> {
+  const result = await getTurso().execute({
+    sql: `SELECT s.tmdb_id, s.media_type, q.name as queue_name, qs.archived
+          FROM queue_shows qs
+          JOIN shows s ON qs.show_id = s.id
+          JOIN queues q ON qs.queue_id = q.id
+          WHERE q.family_id = ? AND qs.private = 0 AND s.tmdb_id IS NOT NULL`,
+    args: [familyId],
+  });
+  return result.rows.map((r) => ({
+    tmdb_id: r.tmdb_id as number,
+    media_type: r.media_type as string,
+    queue_name: r.queue_name as string,
+    archived: (r.archived as number) === 1,
+  }));
+}
+
 export async function getShowById(queueId: string, showId: string): Promise<ShowRow | null> {
   const result = await getTurso().execute({
     sql: `${QUEUE_SHOW_SELECT}

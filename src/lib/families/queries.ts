@@ -166,6 +166,42 @@ export async function getInviteByCode(code: string): Promise<(FamilyInvite & { f
   };
 }
 
+export async function getUniqueProvidersFromShows(): Promise<
+  { provider_id: number; provider_name: string; logo_path: string }[]
+> {
+  const result = await getTurso().execute(
+    "SELECT DISTINCT watch_providers FROM shows WHERE watch_providers IS NOT NULL",
+  );
+  const seen = new Map<number, { provider_id: number; provider_name: string; logo_path: string }>();
+  for (const row of result.rows) {
+    const providers = JSON.parse(row.watch_providers as string) as {
+      provider_id: number;
+      provider_name: string;
+      logo_path: string;
+    }[];
+    for (const p of providers) {
+      if (!seen.has(p.provider_id)) seen.set(p.provider_id, p);
+    }
+  }
+  return Array.from(seen.values());
+}
+
+export async function getGroupQueuesWithMembers(familyId: string): Promise<{
+  queues: Queue[];
+  membersByQueue: Record<string, QueueMember[]>;
+}> {
+  const qResult = await getTurso().execute({
+    sql: "SELECT * FROM queues WHERE family_id = ? AND type = 'group' ORDER BY name ASC",
+    args: [familyId],
+  });
+  const queues = qResult.rows.map(mapQueue);
+  const membersByQueue: Record<string, QueueMember[]> = {};
+  for (const q of queues) {
+    membersByQueue[q.id] = await getQueueMembers(q.id);
+  }
+  return { queues, membersByQueue };
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapQueue(r: any): Queue {
   return {
