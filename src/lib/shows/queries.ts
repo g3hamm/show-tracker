@@ -9,6 +9,7 @@ export const NEW_THIS_WEEK_DAYS = 7;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRow(r: any): ShowRow {
   return {
+    // Catalog fields
     id: r.id,
     media_type: r.media_type,
     tmdb_id: r.tmdb_id,
@@ -22,19 +23,24 @@ function mapRow(r: any): ShowRow {
     last_episode: r.last_episode ? JSON.parse(r.last_episode) as TmdbEpisode : null,
     next_air_date: r.next_air_date,
     last_air_date: r.last_air_date,
-    current_season: r.current_season,
-    current_episode: r.current_episode,
-    archived: r.archived === 1,
-    rating: r.rating as number | null ?? null,
-    review: r.review as string | null ?? null,
     watch_providers: r.watch_providers ? JSON.parse(r.watch_providers) as StoredWatchProvider[] : null,
     last_refreshed_at: r.last_refreshed_at,
+    created_at: r.created_at,
+    // Queue tracking fields (from queue_shows join, or legacy shows columns)
+    queue_show_id: r.queue_show_id ?? r.id,
+    queue_id: r.queue_id ?? "",
+    current_season: r.current_season,
+    current_episode: r.current_episode,
+    archived: (r.archived ?? 0) === 1,
+    rating: r.rating as number | null ?? null,
+    review: r.review as string | null ?? null,
+    is_private: (r.private ?? 0) === 1,
     recommended_by: r.recommended_by ?? null,
     recommended_by_email: r.recommended_by_email ?? null,
     recommendation_note: r.recommendation_note as string | null ?? null,
-    added_by: r.added_by,
-    created_at: r.created_at,
+    added_by: r.added_by ?? null,
     added_by_name: r.display_name ?? null,
+    added_at: r.added_at ?? r.created_at,
   };
 }
 
