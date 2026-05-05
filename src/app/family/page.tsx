@@ -7,6 +7,7 @@ import {
   getGroupQueuesWithMembers,
   getUniqueProvidersFromShows,
 } from "@/lib/families/queries";
+import { tmdbGetWatchProviderList } from "@/lib/tmdb/client";
 import { MemberList } from "@/components/family/MemberList";
 import { InviteGenerator } from "@/components/family/InviteGenerator";
 import { GroupQueueManager } from "@/components/family/GroupQueueManager";
@@ -22,12 +23,13 @@ export default async function FamilyPage() {
   const family = await getFamilyByUserId(userId);
   if (!family) redirect("/family/setup");
 
-  const [members, subscriptions, { queues: groupQueues, membersByQueue }, showProviders] =
+  const [members, subscriptions, { queues: groupQueues, membersByQueue }, showProviders, tmdbProviders] =
     await Promise.all([
       getFamilyMembers(family.id),
       getFamilySubscriptions(family.id),
       getGroupQueuesWithMembers(family.id),
       getUniqueProvidersFromShows(),
+      tmdbGetWatchProviderList().catch(() => []),
     ]);
 
   const currentMember = members.find((m) => m.user_id === userId);
@@ -74,6 +76,7 @@ export default async function FamilyPage() {
           familyId={family.id}
           current={subscriptions}
           showProviders={showProviders}
+          tmdbProviders={tmdbProviders}
         />
       </Section>
     </div>

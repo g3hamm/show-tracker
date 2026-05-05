@@ -6,34 +6,24 @@ import { updateFamilySubscriptions } from "@/lib/families/actions";
 import { tmdbLogo } from "@/lib/tmdb/client";
 import type { FamilySubscription } from "@/lib/families/types";
 
-const COMMON_PROVIDERS = [
-  { provider_id: 8, provider_name: "Netflix", logo_path: "/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg" },
-  { provider_id: 9, provider_name: "Amazon Prime Video", logo_path: "/pvAjkfyLLPLEGiFC91wcKAAkID7.jpg" },
-  { provider_id: 337, provider_name: "Disney Plus", logo_path: "/97yvRBw1GzX7fXprcF80er19ot.jpg" },
-  { provider_id: 15, provider_name: "Hulu", logo_path: "/gJ3yVMWouaVj6iHd59TISJ1TlM5.jpg" },
-  { provider_id: 1899, provider_name: "Max", logo_path: "/6Q3KKEFIL3sOiRMjTbOBEwmKGsT.jpg" },
-  { provider_id: 350, provider_name: "Apple TV Plus", logo_path: "/6uhKBfmtzFqOcLousHwZuzcrScK.jpg" },
-  { provider_id: 386, provider_name: "Peacock", logo_path: "/xTHltMrZPAJFLQ6qyCBjAnXSmZt.jpg" },
-  { provider_id: 531, provider_name: "Paramount Plus", logo_path: "/xbhHHa1YgtpwhC8lb1NQ3ACVcLd.jpg" },
-  { provider_id: 636, provider_name: "MGM Plus", logo_path: "/2PTFxgrswnkhUDAPBjSgNbTOVnE.jpg" },
-  { provider_id: 283, provider_name: "Crunchyroll", logo_path: "/8Gt1iClBlzTeQs8WQm8UrCoIxnQ.jpg" },
-  { provider_id: 43, provider_name: "Starz", logo_path: "/pgr09v9v3GfLIpP2xKrXYnJ0cbr.jpg" },
-  { provider_id: 526, provider_name: "AMC Plus", logo_path: "/xlonQMSmhtA2HHwK3JKF9ghx7M8.jpg" },
-  { provider_id: 151, provider_name: "BritBox", logo_path: "/aGIS8maEjjOENMFoJMFBR2mYK7u.jpg" },
-  { provider_id: 73, provider_name: "Tubi TV", logo_path: "/w1T8s7FqPn0KGnETiNc9emZ1GAl.jpg" },
-  { provider_id: 584, provider_name: "Discovery Plus", logo_path: "/1fOAgfRtF0g7BkNBnKOApSNqzJz.jpg" },
-];
+interface ProviderInfo {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+}
 
 export function StreamingSubscriptions({
   familyId,
   current,
   showProviders,
+  tmdbProviders,
 }: {
   familyId: string;
   current: FamilySubscription[];
-  showProviders: { provider_id: number; provider_name: string; logo_path: string }[];
+  showProviders: ProviderInfo[];
+  tmdbProviders: ProviderInfo[];
 }) {
-  const allProviders = mergeProviders(showProviders);
+  const allProviders = mergeProviders(showProviders, tmdbProviders);
   const [selected, setSelected] = useState<Set<number>>(
     new Set(current.map((s) => s.provider_id)),
   );
@@ -115,10 +105,13 @@ export function StreamingSubscriptions({
 }
 
 function mergeProviders(
-  fromShows: { provider_id: number; provider_name: string; logo_path: string }[],
-) {
-  const map = new Map<number, { provider_id: number; provider_name: string; logo_path: string }>();
-  for (const p of COMMON_PROVIDERS) map.set(p.provider_id, p);
+  fromShows: ProviderInfo[],
+  fromTmdb: ProviderInfo[],
+): ProviderInfo[] {
+  const map = new Map<number, ProviderInfo>();
+  // Top 30 from TMDB (sorted by display_priority, most popular first)
+  for (const p of fromTmdb.slice(0, 30)) map.set(p.provider_id, p);
+  // Show providers always included (these are services with content you track)
   for (const p of fromShows) {
     if (!map.has(p.provider_id)) map.set(p.provider_id, p);
   }

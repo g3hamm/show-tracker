@@ -63,6 +63,30 @@ export function tmdbGetMovie(tmdbId: number) {
   );
 }
 
+export interface TmdbProviderListItem {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+  display_priority: number;
+}
+
+interface TmdbProviderListResponse {
+  results: TmdbProviderListItem[];
+}
+
+export async function tmdbGetWatchProviderList(): Promise<TmdbProviderListItem[]> {
+  const region = process.env.WATCH_REGION ?? "US";
+  const [tv, movie] = await Promise.all([
+    tmdb<TmdbProviderListResponse>("/watch/providers/tv", { watch_region: region }),
+    tmdb<TmdbProviderListResponse>("/watch/providers/movie", { watch_region: region }),
+  ]);
+  const map = new Map<number, TmdbProviderListItem>();
+  for (const p of [...tv.results, ...movie.results]) {
+    if (!map.has(p.provider_id)) map.set(p.provider_id, p);
+  }
+  return Array.from(map.values()).sort((a, b) => a.display_priority - b.display_priority);
+}
+
 export type PosterSize = "w92" | "w154" | "w185" | "w342" | "w500" | "w780" | "original";
 
 export function tmdbPoster(
