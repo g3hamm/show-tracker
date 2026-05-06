@@ -220,15 +220,24 @@ export interface TrackedShowInfo {
   archived: boolean;
 }
 
-export async function getTrackedShowsPublic(): Promise<TrackedShowInfo[]> {
-  const result = await getTurso().execute(
-    `SELECT s.tmdb_id, s.media_type,
-            CASE WHEN SUM(CASE WHEN qs.archived = 0 THEN 1 ELSE 0 END) > 0 THEN 0 ELSE 1 END as archived
-     FROM shows s
-     JOIN queue_shows qs ON s.id = qs.show_id
-     WHERE s.tmdb_id IS NOT NULL AND qs.private = 0
-     GROUP BY s.tmdb_id, s.media_type`,
-  );
+export async function getTrackedShowsPublic(queueShareCode?: string): Promise<TrackedShowInfo[]> {
+  let queueId: string | null = null;
+  if (queueShareCode) {
+    const queue = await getQueueByShareCode(queueShareCode);
+    if (queue) queueId = queue.id;
+  }
+
+  if (!queueId) return [];
+
+  const result = await getTurso().execute({
+    sql: `SELECT s.tmdb_id, s.media_type,
+                 CASE WHEN SUM(CASE WHEN qs.archived = 0 THEN 1 ELSE 0 END) > 0 THEN 0 ELSE 1 END as archived
+          FROM shows s
+          JOIN queue_shows qs ON s.id = qs.show_id
+          WHERE s.tmdb_id IS NOT NULL AND qs.private = 0 AND qs.queue_id = ?
+          GROUP BY s.tmdb_id, s.media_type`,
+    args: [queueId],
+  });
   return result.rows.map((r) => ({
     tmdbId: r.tmdb_id as number,
     mediaType: r.media_type as string,
