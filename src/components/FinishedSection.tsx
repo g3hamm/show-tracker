@@ -67,14 +67,7 @@ export function FinishedSection({ shows }: { shows: ShowRow[] }) {
               <div className="mt-1.5">
                 <WatchProviders providers={show.watch_providers} size="sm" />
               </div>
-              <div className="mt-2">
-                <StarRating showId={show.queue_show_id} rating={show.rating} review={show.review} />
-              </div>
-              {show.review && !show.rating && (
-                <p className="text-xs text-[color:var(--foreground)]/80 mt-1 italic line-clamp-2">
-                  &ldquo;{show.review}&rdquo;
-                </p>
-              )}
+              <StarRating showId={show.queue_show_id} rating={show.rating} review={show.review} />
               <div className="mt-2">
                 <ArchiveToggle id={show.queue_show_id} archived={show.archived} />
               </div>
