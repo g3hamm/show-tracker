@@ -49,4 +49,5 @@ export interface FamilySubscription {
   provider_id: number;
   provider_name: string;
   logo_path: string;
+  monthly_cost?: number | null;
 }

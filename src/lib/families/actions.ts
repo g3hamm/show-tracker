@@ -237,19 +237,42 @@ export async function updateFamilySubscriptions(
 
   const db = getTurso();
 
+  // Preserve existing monthly costs so editing subscriptions doesn't wipe them.
+  const existingResult = await db.execute({
+    sql: "SELECT provider_id, monthly_cost FROM family_subscriptions WHERE family_id = ?",
+    args: [familyId],
+  });
+  const costMap = new Map<number, number | null>(
+    existingResult.rows.map((r) => [r.provider_id as number, (r.monthly_cost as number | null) ?? null]),
+  );
+
   const statements: InStatement[] = [
     { sql: "DELETE FROM family_subscriptions WHERE family_id = ?", args: [familyId] },
   ];
 
   for (const p of providers) {
     statements.push({
-      sql: "INSERT INTO family_subscriptions (family_id, provider_id, provider_name, logo_path) VALUES (?, ?, ?, ?)",
-      args: [familyId, p.provider_id, p.provider_name, p.logo_path],
+      sql: "INSERT INTO family_subscriptions (family_id, provider_id, provider_name, logo_path, monthly_cost) VALUES (?, ?, ?, ?, ?)",
+      args: [familyId, p.provider_id, p.provider_name, p.logo_path, costMap.get(p.provider_id) ?? null],
     });
   }
 
   await db.batch(statements);
   revalidatePath("/family");
+}
+
+export async function updateProviderMonthlyCost(
+  providerId: number,
+  cost: number | null,
+): Promise<void> {
+  const userId = await requireUser();
+  const family = await getFamilyByUserId(userId);
+  if (!family) throw new Error("Not in a family");
+
+  await getTurso().execute({
+    sql: "UPDATE family_subscriptions SET monthly_cost = ? WHERE family_id = ? AND provider_id = ?",
+    args: [cost, family.id, providerId],
+  });
 }
 
 export async function updateDisplayName(displayName: string): Promise<void> {

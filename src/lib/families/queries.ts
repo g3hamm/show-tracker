@@ -141,6 +141,7 @@ export async function getFamilySubscriptions(familyId: string): Promise<FamilySu
     provider_id: r.provider_id as number,
     provider_name: r.provider_name as string,
     logo_path: r.logo_path as string,
+    monthly_cost: (r.monthly_cost as number | null) ?? null,
   }));
 }
 
