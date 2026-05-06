@@ -85,16 +85,20 @@ export function RecommendForm({ defaultName, queueShareCode }: RecommendFormProp
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!picked) {
+      setError("Please select a show or movie from the search results.");
+      return;
+    }
     setError(null);
     startSubmit(async () => {
       const result = await submitRecommendation({
         recommenderName: name,
         recommenderEmail: email || undefined,
-        title,
-        mediaType: picked?.mediaType ?? "show",
-        tmdbId: picked?.tmdbId ?? null,
-        posterPath: picked?.posterPath ?? null,
-        overview: picked?.overview ?? null,
+        title: picked.name,
+        mediaType: picked.mediaType,
+        tmdbId: picked.tmdbId,
+        posterPath: picked.posterPath ?? null,
+        overview: picked.overview ?? null,
         note,
         website,
         elapsedMs: Date.now() - mountedAt.current,
@@ -301,11 +305,21 @@ export function RecommendForm({ defaultName, queueShareCode }: RecommendFormProp
 
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || !picked}
         className="px-4 py-3 rounded bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold disabled:opacity-60 transition-colors"
       >
         {submitting ? "Sending…" : "Send recommendation"}
       </button>
+      {!picked && title.length >= 2 && !searching && results.length === 0 && (
+        <p className="text-xs text-[color:var(--muted)]">
+          No matches found. Try a different spelling or the original title.
+        </p>
+      )}
+      {!picked && title.length >= 2 && results.length > 0 && (
+        <p className="text-xs text-[color:var(--muted)]">
+          Select a show or movie from the results above to continue.
+        </p>
+      )}
       {error && <p className="text-sm text-[color:var(--danger)]">{error}</p>}
 
       {blockedMessage && (

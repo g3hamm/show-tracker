@@ -152,6 +152,9 @@ export async function submitRecommendation(
   if (email.length > 0 && !email.includes("@")) {
     return { ok: false, error: "Please enter a valid email address." };
   }
+  if (input.tmdbId == null) {
+    return { ok: false, error: "Please select a show or movie from the search results." };
+  }
 
   const ip = await getIp();
   if (!rateLimitSubmit(ip)) {
