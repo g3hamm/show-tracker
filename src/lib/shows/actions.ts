@@ -82,7 +82,7 @@ async function upsertCatalog(row: MediaRowFromTmdb): Promise<string> {
             overview = ?, status = ?, first_air_date = ?,
             next_episode = ?, last_episode = ?,
             next_air_date = ?, last_air_date = ?,
-            watch_providers = ?, last_refreshed_at = ?
+            watch_providers = ?, genres = ?, last_refreshed_at = ?
             WHERE id = ?`,
       args: [
         row.name, row.poster_path, row.backdrop_path,
@@ -91,6 +91,7 @@ async function upsertCatalog(row: MediaRowFromTmdb): Promise<string> {
         row.last_episode ? JSON.stringify(row.last_episode) : null,
         row.next_air_date, row.last_air_date,
         row.watch_providers ? JSON.stringify(row.watch_providers) : null,
+        row.genres ? JSON.stringify(row.genres) : null,
         row.last_refreshed_at, id,
       ],
     });
@@ -101,8 +102,8 @@ async function upsertCatalog(row: MediaRowFromTmdb): Promise<string> {
   await getTurso().execute({
     sql: `INSERT INTO shows (id, media_type, tmdb_id, name, poster_path, backdrop_path,
           overview, status, first_air_date, next_episode, last_episode,
-          next_air_date, last_air_date, watch_providers, last_refreshed_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          next_air_date, last_air_date, watch_providers, genres, last_refreshed_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       id, row.media_type, row.tmdb_id, row.name,
       row.poster_path, row.backdrop_path, row.overview, row.status,
@@ -111,6 +112,7 @@ async function upsertCatalog(row: MediaRowFromTmdb): Promise<string> {
       row.last_episode ? JSON.stringify(row.last_episode) : null,
       row.next_air_date, row.last_air_date,
       row.watch_providers ? JSON.stringify(row.watch_providers) : null,
+      row.genres ? JSON.stringify(row.genres) : null,
       row.last_refreshed_at,
     ],
   });

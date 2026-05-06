@@ -25,6 +25,8 @@ export interface AnalyticsData {
   };
   status_counts: Record<string, number>;
   ratings: Record<number, number>;
+  genre_counts: Record<string, number>;
+  platform_counts: Record<string, number>;
 }
 
 export async function getAnalyticsData(userId: string): Promise<AnalyticsData | null> {
@@ -33,9 +35,13 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
 
   const db = getTurso();
 
-  // Check whether archived_at column exists yet (may not be migrated on existing installs)
-  const pragmaResult = await db.execute("PRAGMA table_info(queue_shows)");
-  const hasArchivedAt = pragmaResult.rows.some((r) => r.name === "archived_at");
+  // Check whether optional columns exist (may not be migrated on existing installs)
+  const [qsPragma, showsPragma] = await Promise.all([
+    db.execute("PRAGMA table_info(queue_shows)"),
+    db.execute("PRAGMA table_info(shows)"),
+  ]);
+  const hasArchivedAt = qsPragma.rows.some((r) => r.name === "archived_at");
+  const hasGenres = showsPragma.rows.some((r) => r.name === "genres");
 
   const [showsResult, subsResult] = await Promise.all([
     db.execute({
@@ -47,7 +53,8 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
               ${hasArchivedAt ? "qs.archived_at," : "NULL as archived_at,"}
               s.media_type,
               s.status,
-              s.watch_providers
+              s.watch_providers,
+              ${hasGenres ? "s.genres" : "NULL as genres"}
             FROM queue_shows qs
             JOIN shows s ON qs.show_id = s.id
             JOIN queues q ON qs.queue_id = q.id
@@ -92,6 +99,8 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
   let all = 0, active = 0, watched = 0, in_progress = 0, movies = 0, tv_shows = 0;
   const status_counts: Record<string, number> = {};
   const ratings: Record<number, number> = {};
+  const genre_counts: Record<string, number> = {};
+  const platform_counts: Record<string, number> = {};
 
   for (const row of showsResult.rows) {
     all++;
@@ -114,6 +123,17 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
     const status = (row.status as string) || "Unknown";
     status_counts[status] = (status_counts[status] ?? 0) + 1;
 
+    if (row.genres) {
+      try {
+        const genres = JSON.parse(row.genres as string) as string[];
+        for (const g of genres) {
+          genre_counts[g] = (genre_counts[g] ?? 0) + 1;
+        }
+      } catch {
+        // skip malformed genre data
+      }
+    }
+
     if (row.watch_providers) {
       let providers: StoredWatchProvider[] = [];
       try {
@@ -122,6 +142,8 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
         // skip malformed provider data
       }
       for (const p of providers) {
+        platform_counts[p.provider_name] = (platform_counts[p.provider_name] ?? 0) + 1;
+
         const stat = providerStats.get(p.provider_id);
         if (stat) {
           if (isArchived) {
@@ -167,5 +189,7 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
     totals: { all, active, watched, in_progress, movies, tv_shows },
     status_counts,
     ratings,
+    genre_counts,
+    platform_counts,
   };
 }

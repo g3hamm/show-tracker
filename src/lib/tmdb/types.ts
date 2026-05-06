@@ -38,6 +38,7 @@ export interface TmdbTvDetails {
   number_of_episodes: number;
   next_episode_to_air: TmdbEpisode | null;
   last_episode_to_air: TmdbEpisode | null;
+  genres?: { id: number; name: string }[];
   "watch/providers"?: TmdbWatchProviderResults;
 }
 
@@ -68,6 +69,7 @@ export interface TmdbMovieDetails {
   status: string;
   release_date: string | null;
   runtime: number | null;
+  genres?: { id: number; name: string }[];
   "watch/providers"?: TmdbWatchProviderResults;
 }
 
