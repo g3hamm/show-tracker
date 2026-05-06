@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 const JOKES = [
   "Something very UNCHILL just occurred.",
@@ -44,12 +45,12 @@ export function ErrorScreen({ reset }: ErrorScreenProps) {
             Try again
           </button>
         )}
-        <a
+        <Link
           href="/"
           className="px-4 py-2 rounded bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-colors"
         >
           Go home
-        </a>
+        </Link>
       </div>
     </div>
   );
