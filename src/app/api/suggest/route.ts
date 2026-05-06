@@ -82,8 +82,11 @@ export async function POST(request: Request) {
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const tmdbKey = process.env.TMDB_API_KEY;
-  if (!anthropicKey || !tmdbKey) {
-    return NextResponse.json({ error: "API keys not configured" }, { status: 500 });
+  if (!anthropicKey) {
+    return NextResponse.json({ error: "ANTHROPIC_API_KEY is not configured. Add it in Vercel environment variables." }, { status: 500 });
+  }
+  if (!tmdbKey) {
+    return NextResponse.json({ error: "TMDB_API_KEY is not configured." }, { status: 500 });
   }
 
   const body = await request.json();
@@ -129,7 +132,7 @@ Response format:
   let suggestions: Suggestion[];
   try {
     const message = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-haiku-4-5-latest",
       max_tokens: 512,
       system: systemPrompt,
       messages: [{ role: "user", content: mood }],
@@ -142,8 +145,10 @@ Response format:
     if (!Array.isArray(suggestions) || suggestions.length === 0) {
       throw new Error("Invalid response format");
     }
-  } catch {
-    return NextResponse.json({ error: "Could not generate suggestions. Try again." }, { status: 500 });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    console.error("Suggest API error:", msg);
+    return NextResponse.json({ error: `Could not generate suggestions. ${msg}` }, { status: 500 });
   }
 
   const results: TmdbResult[] = [];
