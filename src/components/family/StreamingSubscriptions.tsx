@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import { updateFamilySubscriptions } from "@/lib/families/actions";
 import { tmdbLogo } from "@/lib/tmdb/client";
+import { canonicalProviderName } from "@/lib/providers/normalize";
 import type { FamilySubscription } from "@/lib/families/types";
 
 interface ProviderInfo {
@@ -24,19 +25,23 @@ export function StreamingSubscriptions({
   tmdbProviders: ProviderInfo[];
 }) {
   const allProviders = mergeProviders(showProviders, tmdbProviders);
-  const [selected, setSelected] = useState<Set<number>>(
-    new Set(current.map((s) => s.provider_id)),
+
+  // Track selection by canonical name so existing subscriptions are recognised
+  // regardless of which variant ID was originally stored.
+  const [selected, setSelected] = useState<Set<string>>(
+    new Set(current.map((s) => canonicalProviderName(s.provider_name))),
   );
   const [pending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
 
-  const isDirty = !setsEqual(selected, new Set(current.map((s) => s.provider_id)));
+  const currentNames = new Set(current.map((s) => canonicalProviderName(s.provider_name)));
+  const isDirty = !setsEqual(selected, currentNames);
 
-  function toggle(id: number) {
+  function toggle(name: string) {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
       return next;
     });
     setSaved(false);
@@ -44,7 +49,7 @@ export function StreamingSubscriptions({
 
   function onSave() {
     const providers = allProviders
-      .filter((p) => selected.has(p.provider_id))
+      .filter((p) => selected.has(p.provider_name))
       .map((p) => ({
         provider_id: p.provider_id,
         provider_name: p.provider_name,
@@ -61,12 +66,12 @@ export function StreamingSubscriptions({
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {allProviders.map((p) => {
           const logo = tmdbLogo(p.logo_path, "w45");
-          const isSelected = selected.has(p.provider_id);
+          const isSelected = selected.has(p.provider_name);
           return (
             <button
-              key={p.provider_id}
+              key={p.provider_name}
               type="button"
-              onClick={() => toggle(p.provider_id)}
+              onClick={() => toggle(p.provider_name)}
               className={`flex items-center gap-2 p-2.5 rounded-lg border text-left transition-colors ${
                 isSelected
                   ? "bg-[color:var(--accent)]/10 border-[color:var(--accent)]/50"
@@ -108,17 +113,22 @@ function mergeProviders(
   fromShows: ProviderInfo[],
   fromTmdb: ProviderInfo[],
 ): ProviderInfo[] {
-  const map = new Map<number, ProviderInfo>();
-  // Top 30 from TMDB (sorted by display_priority, most popular first)
-  for (const p of fromTmdb.slice(0, 30)) map.set(p.provider_id, p);
-  // Show providers always included (these are services with content you track)
-  for (const p of fromShows) {
-    if (!map.has(p.provider_id)) map.set(p.provider_id, p);
+  const map = new Map<string, ProviderInfo>();
+  // Top 40 from TMDB (sorted by display_priority); normalise names first
+  for (const p of fromTmdb.slice(0, 40)) {
+    const name = canonicalProviderName(p.provider_name);
+    if (!map.has(name)) map.set(name, { ...p, provider_name: name });
   }
-  return Array.from(map.values()).sort((a, b) => a.provider_name.localeCompare(b.provider_name));
+  // Show providers always included; already normalised by getUniqueProvidersFromShows
+  for (const p of fromShows) {
+    if (!map.has(p.provider_name)) map.set(p.provider_name, p);
+  }
+  return Array.from(map.values()).sort((a, b) =>
+    a.provider_name.localeCompare(b.provider_name),
+  );
 }
 
-function setsEqual(a: Set<number>, b: Set<number>) {
+function setsEqual(a: Set<string>, b: Set<string>) {
   if (a.size !== b.size) return false;
   for (const v of a) if (!b.has(v)) return false;
   return true;

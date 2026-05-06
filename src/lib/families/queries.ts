@@ -170,19 +170,20 @@ export async function getInviteByCode(code: string): Promise<(FamilyInvite & { f
 export async function getUniqueProvidersFromShows(): Promise<
   { provider_id: number; provider_name: string; logo_path: string }[]
 > {
+  const { normalizeProviders } = await import("@/lib/providers/normalize");
   const result = await getTurso().execute(
     "SELECT DISTINCT watch_providers FROM shows WHERE watch_providers IS NOT NULL",
   );
-  const seen = new Map<number, { provider_id: number; provider_name: string; logo_path: string }>();
+  const seen = new Map<string, { provider_id: number; provider_name: string; logo_path: string }>();
   for (const row of result.rows) {
-    const providers = JSON.parse(row.watch_providers as string) as {
-      provider_id: number;
-      provider_name: string;
-      logo_path: string;
-    }[];
-    for (const p of providers) {
-      if (!seen.has(p.provider_id)) seen.set(p.provider_id, p);
-    }
+    try {
+      const raw = JSON.parse(row.watch_providers as string) as {
+        provider_id: number; provider_name: string; logo_path: string;
+      }[];
+      for (const p of normalizeProviders(raw)) {
+        if (!seen.has(p.provider_name)) seen.set(p.provider_name, p);
+      }
+    } catch { /* skip malformed */ }
   }
   return Array.from(seen.values());
 }
