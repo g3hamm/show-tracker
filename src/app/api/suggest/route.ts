@@ -139,7 +139,8 @@ Response format:
     });
 
     const block = message.content[0];
-    const text = block.type === "text" ? block.text : "";
+    let text = block.type === "text" ? block.text : "";
+    text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
     suggestions = JSON.parse(text);
 
     if (!Array.isArray(suggestions) || suggestions.length === 0) {
