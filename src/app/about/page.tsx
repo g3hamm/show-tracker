@@ -102,23 +102,23 @@ export default function AboutPage() {
 
       {/* Hero */}
       <div className="bg-[#C01900] overflow-hidden">
-        <div className="max-w-4xl mx-auto px-6 sm:px-8 pb-16 pt-12 text-center relative">
-          {/* Flanking characters */}
-          <div className="absolute bottom-0 left-0 w-36 sm:w-48 select-none pointer-events-none">
-            <Image
-              src="/couchie.png"
-              alt=""
-              width={192}
-              height={192}
-              className="object-contain object-bottom w-full"
-            />
-          </div>
-          <div className="absolute bottom-0 right-0 w-28 sm:w-36 select-none pointer-events-none">
+        <div className="max-w-4xl mx-auto px-6 sm:px-56 md:px-64 pb-16 pt-12 text-center relative">
+          {/* Flanking characters — hidden on mobile to avoid overlap */}
+          <div className="hidden sm:block absolute bottom-0 left-0 w-56 md:w-72 select-none pointer-events-none">
             <Image
               src="/cuppie.png"
               alt=""
-              width={144}
-              height={144}
+              width={288}
+              height={288}
+              className="object-contain object-bottom w-full"
+            />
+          </div>
+          <div className="hidden sm:block absolute bottom-0 right-0 w-56 md:w-72 select-none pointer-events-none">
+            <Image
+              src="/couchie.png"
+              alt=""
+              width={288}
+              height={288}
               className="object-contain object-bottom w-full"
             />
           </div>
