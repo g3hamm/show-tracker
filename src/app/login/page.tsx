@@ -2,7 +2,7 @@ import { SignIn } from "@clerk/nextjs";
 import { Logo } from "@/components/Logo";
 
 export const metadata = {
-  title: "Sign in · HAMMFLIX",
+  title: "Sign in · Chillflix",
 };
 
 export default function LoginPage() {

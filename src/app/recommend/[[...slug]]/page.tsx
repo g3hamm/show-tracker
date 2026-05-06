@@ -7,7 +7,7 @@ import { RecommendForm } from "../RecommendForm";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Recommend a show · HAMMFLIX",
+  title: "Recommend a show · Chillflix",
 };
 
 function toProperCase(slug: string): string {

@@ -3,9 +3,12 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "HAMMFLIX",
+  title: "Chillflix",
   description:
     "Track the TV shows we're watching and get notified when new episodes drop.",
+  icons: {
+    apple: "/chillflix-app-logo.png",
+  },
 };
 
 export default function RootLayout({

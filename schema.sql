@@ -1,4 +1,4 @@
--- HAMMFLIX schema for Turso (SQLite).
+-- Chillflix schema for Turso (SQLite).
 -- Run once via `turso db shell <db-name> < schema.sql`
 -- or paste into the Turso dashboard SQL editor.
 -- Safe to re-run: uses IF NOT EXISTS throughout.

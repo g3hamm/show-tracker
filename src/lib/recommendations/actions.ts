@@ -184,7 +184,7 @@ export async function submitRecommendation(
   // Send notification email to owner (fire-and-forget)
   const notifyEmail = process.env.NOTIFICATION_EMAIL;
   if (emailEnabled() && notifyEmail) {
-    const fromEmail = process.env.RESEND_FROM ?? "HAMMFLIX <onboarding@resend.dev>";
+    const fromEmail = process.env.RESEND_FROM ?? "Chillflix <onboarding@resend.dev>";
     const { subject, html } = newRecommendationEmail({
       recommenderName: name,
       title,

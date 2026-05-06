@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hammflix.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chillflix.app";
 
 function layout(content: string): string {
   return `<!DOCTYPE html>
@@ -6,7 +6,7 @@ function layout(content: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>HAMMFLIX</title>
+  <title>Chillflix</title>
 </head>
 <body style="margin:0;padding:0;background:#111111;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#111111;padding:32px 16px;">
@@ -16,7 +16,7 @@ function layout(content: string): string {
           <!-- Header -->
           <tr>
             <td style="background:#C01900;border-radius:8px 8px 0 0;padding:24px 32px;">
-              <span style="font-size:28px;font-weight:900;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">HAMMFLIX</span>
+              <span style="font-size:28px;font-weight:900;color:#ffffff;letter-spacing:2px;text-transform:uppercase;">Chillflix</span>
             </td>
           </tr>
           <!-- Body -->
@@ -28,7 +28,7 @@ function layout(content: string): string {
           <!-- Footer -->
           <tr>
             <td style="padding:16px 0;text-align:center;">
-              <span style="font-size:11px;color:#555555;">HAMMFLIX · <a href="${BASE_URL}" style="color:#555555;text-decoration:none;">${BASE_URL.replace(/https?:\/\//, "")}</a></span>
+              <span style="font-size:11px;color:#555555;">Chillflix · <a href="${BASE_URL}" style="color:#555555;text-decoration:none;">${BASE_URL.replace(/https?:\/\//, "")}</a></span>
             </td>
           </tr>
         </table>
@@ -47,7 +47,7 @@ export function newRecommendationEmail(opts: {
   overview: string | null;
 }): { subject: string; html: string } {
   const label = opts.mediaType === "movie" ? "movie" : "show";
-  const subject = `${opts.recommenderName} recommended "${opts.title}" on HAMMFLIX`;
+  const subject = `${opts.recommenderName} recommended "${opts.title}" on Chillflix`;
 
   const html = layout(`
     <p style="margin:0 0 8px;font-size:13px;color:#999;">New recommendation</p>
@@ -69,7 +69,7 @@ export function newRecommendationEmail(opts: {
     <p style="margin:0 0 20px;font-size:13px;color:#888888;line-height:1.6;">${opts.overview}</p>` : ""}
 
     <a href="${BASE_URL}" style="display:inline-block;background:#C01900;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:6px;">
-      View on HAMMFLIX →
+      View on Chillflix →
     </a>
   `);
 

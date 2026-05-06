@@ -198,7 +198,7 @@ export async function archiveShow(queueShowId: string, archived: boolean): Promi
       }
 
       if (qs && emailEnabled() && qs.recommended_by_email) {
-        const fromEmail = process.env.RESEND_FROM ?? "HAMMFLIX <onboarding@resend.dev>";
+        const fromEmail = process.env.RESEND_FROM ?? "Chillflix <onboarding@resend.dev>";
         const { subject, html } = watchedItEmail({
           recommenderName: qs.recommended_by as string,
           title: qs.name as string,

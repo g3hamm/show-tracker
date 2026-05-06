@@ -34,7 +34,7 @@ export default function FamilySetupPage() {
       </div>
 
       <div className="max-w-xl mx-auto px-6 sm:px-8 mt-12">
-        <h1 className="text-2xl font-bold tracking-tight">Welcome to HAMMFLIX</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Welcome to Chillflix</h1>
         <p className="text-sm text-[color:var(--muted)] mt-2 mb-8">
           Create a family to get started. You can invite others to join later.
         </p>

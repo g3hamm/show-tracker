@@ -14,8 +14,8 @@ export function Logo({ size = "md" }: LogoProps) {
   const { width, height } = dimensions[size];
   return (
     <Image
-      src="/hammflix-logo.png"
-      alt="HAMMFLIX"
+      src="/chillflix-logo.png"
+      alt="Chillflix"
       width={width}
       height={height}
       priority

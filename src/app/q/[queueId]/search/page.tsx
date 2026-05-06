@@ -4,7 +4,7 @@ import { getFamilyTrackingStatus } from "@/lib/shows/queries";
 import { SearchBox } from "./SearchBox";
 
 export const metadata = {
-  title: "Add a show · HAMMFLIX",
+  title: "Add a show · Chillflix",
 };
 
 interface PageProps {
