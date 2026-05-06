@@ -6,6 +6,8 @@ import { getAnalyticsData } from "@/lib/analytics/queries";
 import { tmdbLogo } from "@/lib/tmdb/client";
 import { ProviderCostInput } from "@/components/analytics/ProviderCostInput";
 
+export const dynamic = "force-dynamic";
+
 const STATUS_ORDER = ["Returning Series", "In Production", "Planned", "Ended", "Canceled", "Unknown"];
 
 const STATUS_COLORS: Record<string, string> = {
