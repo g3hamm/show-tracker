@@ -16,6 +16,7 @@ export interface CatalogShow {
   next_air_date: string | null;
   last_air_date: string | null;
   watch_providers: StoredWatchProvider[] | null;
+  justwatch_url: string | null;
   last_refreshed_at: string;
   created_at: string;
 }

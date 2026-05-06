@@ -32,6 +32,7 @@ function mapRow(r: any): ShowRow {
     next_air_date: r.next_air_date,
     last_air_date: r.last_air_date,
     watch_providers: r.watch_providers ? JSON.parse(r.watch_providers) as StoredWatchProvider[] : null,
+    justwatch_url: (r.justwatch_url as string) ?? null,
     last_refreshed_at: r.last_refreshed_at,
     created_at: r.created_at,
     queue_show_id: r.queue_show_id,

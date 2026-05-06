@@ -90,9 +90,13 @@ CREATE TABLE IF NOT EXISTS shows (
   next_air_date     TEXT,                   -- YYYY-MM-DD
   last_air_date     TEXT,                   -- YYYY-MM-DD
   watch_providers   TEXT,                   -- JSON array of streaming providers
+  justwatch_url     TEXT,                   -- direct link to JustWatch page
   last_refreshed_at TEXT NOT NULL DEFAULT (datetime('now')),
   created_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Migration for existing installs:
+-- ALTER TABLE shows ADD COLUMN justwatch_url TEXT;
 
 CREATE INDEX IF NOT EXISTS shows_next_air_date_idx ON shows (next_air_date);
 CREATE INDEX IF NOT EXISTS shows_last_air_date_idx ON shows (last_air_date);
