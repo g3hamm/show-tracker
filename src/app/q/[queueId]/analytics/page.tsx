@@ -11,8 +11,8 @@ export const dynamic = "force-dynamic";
 function satisfactionTier(avgRating: number | null, daysSince: number | null, watchedCount: number): "great" | "ok" | "low" | "unknown" {
   if (avgRating === null && watchedCount === 0) return "unknown";
   if (avgRating !== null) {
-    if (avgRating >= 7.5) return "great";
-    if (avgRating >= 5.0) return "ok";
+    if (avgRating >= 4.0) return "great";
+    if (avgRating >= 2.5) return "ok";
     return "low";
   }
   // No ratings yet but has watched content — neutral
@@ -203,7 +203,7 @@ export default async function AnalyticsPage({
                     {p.avg_rating !== null ? (
                       <span className={sat.text + " font-medium"}>
                         ★ {p.avg_rating.toFixed(1)}{" "}
-                        <span className="text-[color:var(--muted)] font-normal">avg rating</span>
+                        <span className="text-[color:var(--muted)] font-normal">avg rating / 5</span>
                       </span>
                     ) : (
                       <span className="text-[color:var(--muted)]">No ratings yet</span>
@@ -292,13 +292,13 @@ export default async function AnalyticsPage({
                   <span className="font-semibold text-[color:var(--foreground)]">
                     {avgRating.toFixed(1)}
                   </span>
-                  <span className="text-[color:var(--muted)]"> / 10</span>
+                  <span className="text-[color:var(--muted)]"> / 5</span>
                 </span>
               )}
             </div>
             <div className="bg-[color:var(--surface)] rounded-xl p-4">
               <div className="flex items-end gap-1 h-28">
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((r) => {
+                {Array.from({ length: 5 }, (_, i) => i + 1).map((r) => {
                   const count = ratings[r] ?? 0;
                   const heightPct = count > 0 ? (count / maxRatingCount) * 100 : 0;
                   return (
