@@ -34,6 +34,7 @@ export interface MediaRowFromTmdb {
   last_refreshed_at: string;
   watch_providers: StoredWatchProvider[] | null;
   justwatch_url: string | null;
+  genres: string[] | null;
 }
 
 /** @deprecated Use MediaRowFromTmdb */
@@ -56,6 +57,7 @@ export function mapTvDetailsToRow(d: TmdbTvDetails): MediaRowFromTmdb {
     last_refreshed_at: new Date().toISOString(),
     watch_providers: extractWatchProviders(d["watch/providers"]),
     justwatch_url: null,
+    genres: d.genres?.map((g) => g.name) ?? null,
   };
 }
 
@@ -76,5 +78,6 @@ export function mapMovieDetailsToRow(d: TmdbMovieDetails): MediaRowFromTmdb {
     last_refreshed_at: new Date().toISOString(),
     watch_providers: extractWatchProviders(d["watch/providers"]),
     justwatch_url: null,
+    genres: d.genres?.map((g) => g.name) ?? null,
   };
 }
