@@ -8,11 +8,11 @@ import type { StoredWatchProvider } from "@/lib/tmdb/types";
 interface WatchProvidersProps {
   providers: StoredWatchProvider[] | null;
   size?: "sm" | "md";
-  subscribedIds?: Set<number>;
+  subscribedNames?: Set<string>;
   showName?: string;
 }
 
-export function WatchProviders({ providers, size = "sm", subscribedIds, showName }: WatchProvidersProps) {
+export function WatchProviders({ providers, size = "sm", subscribedNames, showName }: WatchProvidersProps) {
   if (!providers || providers.length === 0) return null;
 
   const logoSize = size === "sm" ? "w45" : "w92";
@@ -26,7 +26,7 @@ export function WatchProviders({ providers, size = "sm", subscribedIds, showName
       {shown.map((p) => {
         const src = tmdbLogo(p.logo_path, logoSize);
         if (!src) return null;
-        const dimmed = subscribedIds && !subscribedIds.has(p.provider_id);
+        const dimmed = subscribedNames && !subscribedNames.has(p.provider_name);
         const url = showName ? getProviderSearchUrl(p.provider_id, showName) : null;
 
         const img = (
