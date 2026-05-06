@@ -1,10 +1,10 @@
 const GRAPHQL_URL = "https://apis.justwatch.com/graphql";
 const COUNTRY = (process.env.WATCH_REGION ?? "US") as string;
 
-// fullPath lives inside content(country, language), not directly on the node.
-// Filter uses array-of-objects format: [{ externalId, provider }].
+// Search by title, then confirm with TMDB ID match in the response.
+// More reliable than the externalIds filter which causes 422 errors.
 const QUERY = `
-  query GetSuggestedTitles(
+  query SearchTitles(
     $country: Country!
     $language: Language!
     $first: Int!
@@ -17,12 +17,14 @@ const QUERY = `
             content(country: $country, language: $language) {
               title
               fullPath
+              externalIds { tmdbId }
             }
           }
           ... on Show {
             content(country: $country, language: $language) {
               title
               fullPath
+              externalIds { tmdbId }
             }
           }
         }
@@ -34,6 +36,7 @@ const QUERY = `
 export async function fetchJustWatchUrl(
   tmdbId: number,
   mediaType: "show" | "movie",
+  title: string,
 ): Promise<string | null> {
   try {
     const res = await fetch(GRAPHQL_URL, {
@@ -44,14 +47,14 @@ export async function fetchJustWatchUrl(
         "App-Version": "3.7.7-web",
       },
       body: JSON.stringify({
-        operationName: "GetSuggestedTitles",
+        operationName: "SearchTitles",
         query: QUERY,
         variables: {
           country: COUNTRY,
           language: "en",
-          first: 1,
+          first: 5,
           filter: {
-            externalIds: [{ externalId: String(tmdbId), provider: "TMDB" }],
+            searchQuery: title,
             objectTypes: [mediaType === "movie" ? "MOVIE" : "SHOW"],
           },
         },
@@ -71,11 +74,22 @@ export async function fetchJustWatchUrl(
       return null;
     }
 
-    const node = json?.data?.popularTitles?.edges?.[0]?.node;
-    const fullPath: string | undefined = node?.content?.fullPath;
+    const edges: { node: { content?: { fullPath?: string; externalIds?: { tmdbId?: number } } } }[] =
+      json?.data?.popularTitles?.edges ?? [];
 
+    if (edges.length === 0) {
+      console.error(`[JustWatch] No results for "${title}" tmdbId=${tmdbId}`);
+      return null;
+    }
+
+    // Prefer exact TMDB ID match; fall back to first result.
+    const match =
+      edges.find((e) => e.node?.content?.externalIds?.tmdbId === tmdbId) ??
+      edges[0];
+
+    const fullPath = match?.node?.content?.fullPath;
     if (!fullPath) {
-      console.error(`[JustWatch] No fullPath for tmdbId=${tmdbId} type=${mediaType}. Response:`, JSON.stringify(json?.data));
+      console.error(`[JustWatch] No fullPath for "${title}" tmdbId=${tmdbId}`);
       return null;
     }
 
