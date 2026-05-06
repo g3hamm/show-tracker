@@ -15,6 +15,15 @@ const QUEUE_SHOW_SELECT = `
   JOIN shows s ON qs.show_id = s.id
   LEFT JOIN users u ON qs.added_by = u.id`;
 
+function safeParse<T>(value: unknown): T | null {
+  if (!value) return null;
+  try {
+    return JSON.parse(value as string) as T;
+  } catch {
+    return null;
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRow(r: any): ShowRow {
   return {
@@ -27,11 +36,11 @@ function mapRow(r: any): ShowRow {
     overview: r.overview,
     status: r.status,
     first_air_date: r.first_air_date,
-    next_episode: r.next_episode ? JSON.parse(r.next_episode) as TmdbEpisode : null,
-    last_episode: r.last_episode ? JSON.parse(r.last_episode) as TmdbEpisode : null,
+    next_episode: safeParse<TmdbEpisode>(r.next_episode),
+    last_episode: safeParse<TmdbEpisode>(r.last_episode),
     next_air_date: r.next_air_date,
     last_air_date: r.last_air_date,
-    watch_providers: r.watch_providers ? JSON.parse(r.watch_providers) as StoredWatchProvider[] : null,
+    watch_providers: safeParse<StoredWatchProvider[]>(r.watch_providers),
     justwatch_url: (r.justwatch_url as string) ?? null,
     last_refreshed_at: r.last_refreshed_at,
     created_at: r.created_at,

@@ -33,6 +33,10 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
 
   const db = getTurso();
 
+  // Check whether archived_at column exists yet (may not be migrated on existing installs)
+  const pragmaResult = await db.execute("PRAGMA table_info(queue_shows)");
+  const hasArchivedAt = pragmaResult.rows.some((r) => r.name === "archived_at");
+
   const [showsResult, subsResult] = await Promise.all([
     db.execute({
       sql: `SELECT
@@ -40,7 +44,7 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
               qs.rating,
               qs.current_season,
               qs.current_episode,
-              qs.archived_at,
+              ${hasArchivedAt ? "qs.archived_at," : "NULL as archived_at,"}
               s.media_type,
               s.status,
               s.watch_providers
@@ -111,7 +115,12 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
     status_counts[status] = (status_counts[status] ?? 0) + 1;
 
     if (row.watch_providers) {
-      const providers = JSON.parse(row.watch_providers as string) as StoredWatchProvider[];
+      let providers: StoredWatchProvider[] = [];
+      try {
+        providers = JSON.parse(row.watch_providers as string) as StoredWatchProvider[];
+      } catch {
+        // skip malformed provider data
+      }
       for (const p of providers) {
         const stat = providerStats.get(p.provider_id);
         if (stat) {
