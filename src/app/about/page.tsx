@@ -101,8 +101,28 @@ export default function AboutPage() {
       </header>
 
       {/* Hero */}
-      <div className="bg-[#C01900]">
-        <div className="max-w-4xl mx-auto px-6 sm:px-8 pb-16 pt-12 text-center">
+      <div className="bg-[#C01900] overflow-hidden">
+        <div className="max-w-4xl mx-auto px-6 sm:px-8 pb-16 pt-12 text-center relative">
+          {/* Flanking characters */}
+          <div className="absolute bottom-0 left-0 w-36 sm:w-48 select-none pointer-events-none">
+            <Image
+              src="/couchie.png"
+              alt=""
+              width={192}
+              height={192}
+              className="object-contain object-bottom w-full"
+            />
+          </div>
+          <div className="absolute bottom-0 right-0 w-28 sm:w-36 select-none pointer-events-none">
+            <Image
+              src="/cuppie.png"
+              alt=""
+              width={144}
+              height={144}
+              className="object-contain object-bottom w-full"
+            />
+          </div>
+
           <div className="inline-block text-[10px] uppercase tracking-widest font-semibold text-white/60 bg-white/10 border border-white/20 rounded-full px-3 py-1 mb-5">
             About us
           </div>
