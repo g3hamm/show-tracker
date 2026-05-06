@@ -141,7 +141,7 @@ export async function addShow(
     row = mapTvDetailsToRow(details);
   }
 
-  row.justwatch_url = await fetchJustWatchUrl(tmdbId, mediaType);
+  row.justwatch_url = await fetchJustWatchUrl(tmdbId, mediaType, row.name);
 
   const showId = await upsertCatalog(row);
 
@@ -272,7 +272,7 @@ export async function togglePrivate(queueShowId: string): Promise<void> {
 
 export async function refreshAllShows(): Promise<{ refreshed: number; failed: number; unarchived: number }> {
   const result = await getTurso().execute(
-    "SELECT id, tmdb_id, media_type, justwatch_url FROM shows WHERE tmdb_id IS NOT NULL",
+    "SELECT id, tmdb_id, media_type, name, justwatch_url FROM shows WHERE tmdb_id IS NOT NULL",
   );
 
   let refreshed = 0;
@@ -288,6 +288,7 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
         const showId = s.id as string;
         const tmdbId = s.tmdb_id as number;
         const mediaType = s.media_type as string;
+        const showName = s.name as string;
         const existingJwUrl = (s.justwatch_url as string) ?? null;
 
         let row: MediaRowFromTmdb;
@@ -301,7 +302,7 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
 
         // Backfill JustWatch URL for shows that don't have one yet.
         if (!existingJwUrl) {
-          row.justwatch_url = await fetchJustWatchUrl(tmdbId, mediaType === "movie" ? "movie" : "show");
+          row.justwatch_url = await fetchJustWatchUrl(tmdbId, mediaType === "movie" ? "movie" : "show", showName);
         }
 
         await getTurso().execute({
