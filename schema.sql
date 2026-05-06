@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS shows (
 
 -- Migration for existing installs:
 -- ALTER TABLE shows ADD COLUMN justwatch_url TEXT;
+-- ALTER TABLE queue_shows ADD COLUMN archived_at TEXT;
 
 CREATE INDEX IF NOT EXISTS shows_next_air_date_idx ON shows (next_air_date);
 CREATE INDEX IF NOT EXISTS shows_last_air_date_idx ON shows (last_air_date);
@@ -119,7 +120,8 @@ CREATE TABLE IF NOT EXISTS queue_shows (
   recommended_by_email TEXT,
   recommendation_note  TEXT,
   added_by             TEXT REFERENCES users(id),
-  added_at             TEXT NOT NULL DEFAULT (datetime('now'))
+  added_at             TEXT NOT NULL DEFAULT (datetime('now')),
+  archived_at          TEXT
 );
 CREATE UNIQUE INDEX IF NOT EXISTS queue_shows_uniq ON queue_shows (queue_id, show_id);
 CREATE INDEX IF NOT EXISTS queue_shows_queue_idx ON queue_shows (queue_id);

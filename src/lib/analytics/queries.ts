@@ -9,6 +9,8 @@ export interface ProviderAnalytics {
   monthly_cost: number | null;
   active_count: number;
   watched_count: number;
+  avg_rating: number | null;
+  days_since_last_watch: number | null;
 }
 
 export interface AnalyticsData {
@@ -38,6 +40,7 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
               qs.rating,
               qs.current_season,
               qs.current_episode,
+              qs.archived_at,
               s.media_type,
               s.status,
               s.watch_providers
@@ -60,8 +63,26 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
     monthly_cost: (r.monthly_cost as number | null) ?? null,
   }));
 
-  const providerStats = new Map<number, ProviderAnalytics>(
-    subscriptions.map((s) => [s.provider_id, { ...s, active_count: 0, watched_count: 0 }]),
+  interface ProviderAccum extends ProviderAnalytics {
+    rating_sum: number;
+    rating_count: number;
+    last_watched_at: string | null;
+  }
+
+  const providerStats = new Map<number, ProviderAccum>(
+    subscriptions.map((s) => [
+      s.provider_id,
+      {
+        ...s,
+        active_count: 0,
+        watched_count: 0,
+        avg_rating: null,
+        days_since_last_watch: null,
+        rating_sum: 0,
+        rating_count: 0,
+        last_watched_at: null,
+      },
+    ]),
   );
 
   let all = 0, active = 0, watched = 0, in_progress = 0, movies = 0, tv_shows = 0;
@@ -94,15 +115,46 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
       for (const p of providers) {
         const stat = providerStats.get(p.provider_id);
         if (stat) {
-          if (isArchived) stat.watched_count++;
-          else stat.active_count++;
+          if (isArchived) {
+            stat.watched_count++;
+            if (row.rating !== null) {
+              stat.rating_sum += row.rating as number;
+              stat.rating_count++;
+            }
+            const archivedAt = row.archived_at as string | null;
+            if (archivedAt && (!stat.last_watched_at || archivedAt > stat.last_watched_at)) {
+              stat.last_watched_at = archivedAt;
+            }
+          } else {
+            stat.active_count++;
+          }
         }
       }
     }
   }
 
+  const now = new Date();
+  const providers: ProviderAnalytics[] = Array.from(providerStats.values()).map((s) => {
+    const avg_rating = s.rating_count > 0 ? s.rating_sum / s.rating_count : null;
+    let days_since_last_watch: number | null = null;
+    if (s.last_watched_at) {
+      const diff = now.getTime() - new Date(s.last_watched_at).getTime();
+      days_since_last_watch = Math.floor(diff / (1000 * 60 * 60 * 24));
+    }
+    return {
+      provider_id: s.provider_id,
+      provider_name: s.provider_name,
+      logo_path: s.logo_path,
+      monthly_cost: s.monthly_cost,
+      active_count: s.active_count,
+      watched_count: s.watched_count,
+      avg_rating,
+      days_since_last_watch,
+    };
+  });
+
   return {
-    providers: Array.from(providerStats.values()),
+    providers,
     totals: { all, active, watched, in_progress, movies, tv_shows },
     status_counts,
     ratings,

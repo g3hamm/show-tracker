@@ -181,18 +181,18 @@ export async function archiveShow(queueShowId: string, archived: boolean): Promi
         const lastEp = details.last_episode_to_air;
         if (lastEp) {
           await getTurso().execute({
-            sql: "UPDATE queue_shows SET archived = 1, current_season = ?, current_episode = ? WHERE id = ?",
+            sql: "UPDATE queue_shows SET archived = 1, archived_at = datetime('now'), current_season = ?, current_episode = ? WHERE id = ?",
             args: [lastEp.season_number, lastEp.episode_number, queueShowId],
           });
         } else {
           await getTurso().execute({
-            sql: "UPDATE queue_shows SET archived = 1 WHERE id = ?",
+            sql: "UPDATE queue_shows SET archived = 1, archived_at = datetime('now') WHERE id = ?",
             args: [queueShowId],
           });
         }
       } else {
         await getTurso().execute({
-          sql: "UPDATE queue_shows SET archived = 1 WHERE id = ?",
+          sql: "UPDATE queue_shows SET archived = 1, archived_at = datetime('now') WHERE id = ?",
           args: [queueShowId],
         });
       }
@@ -215,13 +215,13 @@ export async function archiveShow(queueShowId: string, archived: boolean): Promi
       }
     } catch {
       await getTurso().execute({
-        sql: "UPDATE queue_shows SET archived = 1 WHERE id = ?",
+        sql: "UPDATE queue_shows SET archived = 1, archived_at = datetime('now') WHERE id = ?",
         args: [queueShowId],
       });
     }
   } else {
     await getTurso().execute({
-      sql: "UPDATE queue_shows SET archived = 0 WHERE id = ?",
+      sql: "UPDATE queue_shows SET archived = 0, archived_at = NULL WHERE id = ?",
       args: [queueShowId],
     });
   }

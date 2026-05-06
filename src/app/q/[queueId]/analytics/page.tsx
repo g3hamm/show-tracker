@@ -8,6 +8,25 @@ import { ProviderCostInput } from "@/components/analytics/ProviderCostInput";
 
 export const dynamic = "force-dynamic";
 
+function satisfactionTier(avgRating: number | null, daysSince: number | null, watchedCount: number): "great" | "ok" | "low" | "unknown" {
+  if (avgRating === null && watchedCount === 0) return "unknown";
+  if (avgRating !== null) {
+    if (avgRating >= 7.5) return "great";
+    if (avgRating >= 5.0) return "ok";
+    return "low";
+  }
+  // No ratings yet but has watched content — neutral
+  if (daysSince !== null && daysSince > 90) return "low";
+  return "unknown";
+}
+
+const SAT_CONFIG = {
+  great:   { face: "😊", label: "Great value",      ring: "ring-emerald-500/40", text: "text-emerald-400", bar: "bg-emerald-500" },
+  ok:      { face: "😐", label: "Decent",            ring: "ring-amber-500/40",   text: "text-amber-400",   bar: "bg-amber-500" },
+  low:     { face: "😞", label: "Low satisfaction",  ring: "ring-red-500/40",     text: "text-red-400",     bar: "bg-red-500" },
+  unknown: { face: "🤔", label: "Not enough data",   ring: "ring-[color:var(--border)]", text: "text-[color:var(--muted)]", bar: "bg-[color:var(--border)]" },
+};
+
 const STATUS_ORDER = ["Returning Series", "In Production", "Planned", "Ended", "Canceled", "Unknown"];
 
 const STATUS_COLORS: Record<string, string> = {
@@ -118,24 +137,34 @@ export default async function AnalyticsPage({
                 p.monthly_cost && p.monthly_cost > 0 && p.watched_count > 0
                   ? p.monthly_cost / p.watched_count
                   : null;
+              const tier = satisfactionTier(p.avg_rating, p.days_since_last_watch, p.watched_count);
+              const sat = SAT_CONFIG[tier];
 
               return (
                 <div
                   key={p.provider_id}
-                  className="bg-[color:var(--surface)] rounded-xl p-4 flex flex-col gap-3"
+                  className={`bg-[color:var(--surface)] rounded-xl p-4 flex flex-col gap-3 ring-1 ${sat.ring}`}
                 >
                   {/* Header row */}
-                  <div className="flex items-center gap-3">
-                    {logoSrc && (
-                      <Image
-                        src={logoSrc}
-                        alt={p.provider_name}
-                        width={40}
-                        height={40}
-                        className="rounded-lg flex-shrink-0"
-                      />
-                    )}
-                    <span className="font-medium text-sm leading-tight">{p.provider_name}</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {logoSrc && (
+                        <Image
+                          src={logoSrc}
+                          alt={p.provider_name}
+                          width={40}
+                          height={40}
+                          className="rounded-lg flex-shrink-0"
+                        />
+                      )}
+                      <span className="font-medium text-sm leading-tight">{p.provider_name}</span>
+                    </div>
+                    <span
+                      className="text-xl leading-none"
+                      title={sat.label}
+                    >
+                      {sat.face}
+                    </span>
                   </div>
 
                   {/* Counts */}
@@ -158,7 +187,7 @@ export default async function AnalyticsPage({
                   <div>
                     <div className="h-1.5 bg-[color:var(--border)] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#C01900] rounded-full transition-all"
+                        className={`h-full ${sat.bar} rounded-full transition-all`}
                         style={{ width: `${utilPct}%` }}
                       />
                     </div>
@@ -166,6 +195,32 @@ export default async function AnalyticsPage({
                       <div className="text-[10px] text-[color:var(--muted)] mt-1">
                         {Math.round(utilPct)}% finished
                       </div>
+                    )}
+                  </div>
+
+                  {/* Avg rating + days since last watch */}
+                  <div className="flex items-center justify-between text-xs">
+                    {p.avg_rating !== null ? (
+                      <span className={sat.text + " font-medium"}>
+                        ★ {p.avg_rating.toFixed(1)}{" "}
+                        <span className="text-[color:var(--muted)] font-normal">avg rating</span>
+                      </span>
+                    ) : (
+                      <span className="text-[color:var(--muted)]">No ratings yet</span>
+                    )}
+                    {p.days_since_last_watch !== null ? (
+                      <span className="text-[color:var(--muted)]">
+                        Last watched{" "}
+                        <span className="text-[color:var(--foreground)] font-medium">
+                          {p.days_since_last_watch === 0
+                            ? "today"
+                            : p.days_since_last_watch === 1
+                            ? "1d ago"
+                            : `${p.days_since_last_watch}d ago`}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-[color:var(--muted)]">Never finished</span>
                     )}
                   </div>
 
@@ -177,10 +232,19 @@ export default async function AnalyticsPage({
                     />
                     {costPerWatched !== null && (
                       <span className="text-xs text-[color:var(--muted)]">
-                        ${costPerWatched.toFixed(2)} / watched title
+                        ${costPerWatched.toFixed(2)} / watched
                       </span>
                     )}
                   </div>
+
+                  {/* Cancel nudge */}
+                  {tier === "low" && p.monthly_cost && p.monthly_cost > 0 && (
+                    <div className="pt-1 border-t border-[color:var(--border)]">
+                      <p className="text-[10px] text-red-400 leading-snug">
+                        Consider cancelling — low satisfaction and ${p.monthly_cost.toFixed(2)}/mo adds up.
+                      </p>
+                    </div>
+                  )}
                 </div>
               );
             })}
