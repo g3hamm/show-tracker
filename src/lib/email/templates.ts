@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chillflix.app";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.chillflix.app";
 
 function layout(content: string): string {
   return `<!DOCTYPE html>

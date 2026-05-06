@@ -34,7 +34,7 @@ export default async function FamilyPage() {
 
   const currentMember = members.find((m) => m.user_id === userId);
   const isAdmin = currentMember?.role === "admin";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:4141";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.chillflix.app";
 
   return (
     <div className="max-w-3xl mx-auto px-6 sm:px-8 py-8">
