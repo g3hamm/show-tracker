@@ -5,65 +5,10 @@ import { useClerk } from "@clerk/nextjs";
 import Link from "next/link";
 import { refreshAll } from "@/lib/shows/actions";
 
-export function RefreshButton() {
-  const [pending, startTransition] = useTransition();
-  const [result, setResult] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!result) return;
-    const t = setTimeout(() => setResult(null), 3000);
-    return () => clearTimeout(t);
-  }, [result]);
-
-  function onClick() {
-    setResult(null);
-    startTransition(async () => {
-      try {
-        const r = await refreshAll();
-        setResult(
-          r.failed > 0
-            ? `${r.refreshed} refreshed, ${r.failed} failed`
-            : `${r.refreshed} refreshed`,
-        );
-      } catch (err) {
-        setResult(err instanceof Error ? err.message : "Failed");
-      }
-    });
-  }
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={pending}
-        title="Refresh show data"
-        className="p-2 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors disabled:opacity-50"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className={`w-5 h-5 ${pending ? "animate-spin" : ""}`}
-        >
-          <path
-            fillRule="evenodd"
-            d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H4.598a.75.75 0 0 0-.75.75v3.634a.75.75 0 0 0 1.5 0v-2.033l.262.263a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.01-.131Zm-3.644-6.848a7 7 0 0 0-11.712 3.138.75.75 0 0 0 1.01.131 5.5 5.5 0 0 1 9.201-2.466l.312.311H8.046a.75.75 0 0 0 0 1.5h3.634a.75.75 0 0 0 .75-.75V2.776a.75.75 0 0 0-1.5 0v2.033l-.262-.263Z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </button>
-      {result && (
-        <span className="absolute top-full right-0 mt-1 whitespace-nowrap text-[10px] text-white/70 bg-black/60 rounded px-2 py-1">
-          {result}
-        </span>
-      )}
-    </div>
-  );
-}
-
-export function SettingsMenu({ shareHref }: { shareHref?: string }) {
+export function SettingsMenu({ shareHref, queueId }: { shareHref?: string; queueId: string }) {
   const [open, setOpen] = useState(false);
+  const [refreshPending, startRefresh] = useTransition();
+  const [refreshResult, setRefreshResult] = useState<string | null>(null);
   const { signOut } = useClerk();
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -76,12 +21,34 @@ export function SettingsMenu({ shareHref }: { shareHref?: string }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
+  useEffect(() => {
+    if (!refreshResult) return;
+    const t = setTimeout(() => setRefreshResult(null), 4000);
+    return () => clearTimeout(t);
+  }, [refreshResult]);
+
+  function handleRefresh() {
+    setRefreshResult(null);
+    startRefresh(async () => {
+      try {
+        const r = await refreshAll();
+        setRefreshResult(
+          r.failed > 0
+            ? `${r.refreshed} refreshed, ${r.failed} failed`
+            : `${r.refreshed} shows refreshed`,
+        );
+      } catch (err) {
+        setRefreshResult(err instanceof Error ? err.message : "Refresh failed");
+      }
+    });
+  }
+
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        title="Settings"
+        title="Menu"
         className="p-2 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors"
       >
         <svg
@@ -106,10 +73,10 @@ export function SettingsMenu({ shareHref }: { shareHref?: string }) {
           />
           <div
             ref={panelRef}
-            className="absolute top-0 right-0 h-full w-72 bg-[color:var(--background)] border-l border-[color:var(--border)] shadow-2xl animate-slide-in flex flex-col"
+            className="absolute top-0 right-0 h-full w-72 bg-[color:var(--background)] border-l border-[color:var(--border)] shadow-2xl animate-slide-in flex flex-col overflow-y-auto"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-[color:var(--border)]">
-              <h2 className="font-semibold text-sm">Settings</h2>
+              <h2 className="font-semibold text-sm">Menu</h2>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -121,7 +88,83 @@ export function SettingsMenu({ shareHref }: { shareHref?: string }) {
               </button>
             </div>
 
+            {/* Primary actions — mobile only (header has these on desktop) */}
+            <div className="sm:hidden px-4 pt-4 pb-2 flex flex-col gap-2">
+              <Link
+                href={`/q/${queueId}/search`}
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#C01900] hover:bg-[#a01400] text-white font-bold text-sm transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                  <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+                </svg>
+                Add show
+              </Link>
+              <Link
+                href={`/q/${queueId}/discover`}
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#C01900]/10 border border-[#C01900]/40 hover:bg-[#C01900]/20 text-[#C01900] font-semibold text-sm transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                  <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clipRule="evenodd" />
+                </svg>
+                Discover
+              </Link>
+            </div>
+
             <nav className="flex flex-col py-2">
+              {/* Mobile-only items */}
+              <Link
+                href={`/q/${queueId}/analytics`}
+                onClick={() => setOpen(false)}
+                className="sm:hidden flex items-center gap-3 px-5 py-3 text-sm hover:bg-[color:var(--surface)] transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-[color:var(--muted)]">
+                  <path d="M15.5 2A1.5 1.5 0 0 0 14 3.5v13a1.5 1.5 0 0 0 3 0v-13A1.5 1.5 0 0 0 15.5 2ZM9.5 6A1.5 1.5 0 0 0 8 7.5v9a1.5 1.5 0 0 0 3 0v-9A1.5 1.5 0 0 0 9.5 6ZM3.5 10A1.5 1.5 0 0 0 2 11.5v5a1.5 1.5 0 0 0 3 0v-5A1.5 1.5 0 0 0 3.5 10Z" />
+                </svg>
+                Analytics
+              </Link>
+
+              <div className="sm:hidden mx-5 my-2 border-t border-[color:var(--border)]" />
+
+              {/* Refresh — all sizes */}
+              <button
+                type="button"
+                onClick={handleRefresh}
+                disabled={refreshPending}
+                className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-[color:var(--surface)] transition-colors text-left disabled:opacity-50"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className={`w-5 h-5 text-[color:var(--muted)] ${refreshPending ? "animate-spin" : ""}`}
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H4.598a.75.75 0 0 0-.75.75v3.634a.75.75 0 0 0 1.5 0v-2.033l.262.263a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.01-.131Zm-3.644-6.848a7 7 0 0 0-11.712 3.138.75.75 0 0 0 1.01.131 5.5 5.5 0 0 1 9.201-2.466l.312.311H8.046a.75.75 0 0 0 0 1.5h3.634a.75.75 0 0 0 .75-.75V2.776a.75.75 0 0 0-1.5 0v2.033l-.262-.263Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="flex-1">{refreshPending ? "Refreshing…" : "Refresh shows"}</span>
+                {refreshResult && (
+                  <span className="text-[10px] text-[color:var(--muted)]">{refreshResult}</span>
+                )}
+              </button>
+
+              <Link
+                href="/about"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-[color:var(--surface)] transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-[color:var(--muted)]">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clipRule="evenodd" />
+                </svg>
+                About Chillflix
+              </Link>
+
+              <div className="mx-5 my-2 border-t border-[color:var(--border)]" />
+
               <Link
                 href="/family"
                 onClick={() => setOpen(false)}

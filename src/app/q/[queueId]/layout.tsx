@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { isQueueMember, getQueuesForUser, getQueueById } from "@/lib/families/queries";
 import { QueuePicker } from "@/components/QueuePicker";
-import { RefreshButton, SettingsMenu } from "@/components/SettingsMenu";
+import { SettingsMenu } from "@/components/SettingsMenu";
 import { Logo } from "@/components/Logo";
 
 export default async function QueueLayout({
@@ -31,53 +31,49 @@ export default async function QueueLayout({
   return (
     <main className="min-h-screen">
       <header className="bg-[#C01900] shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1>
-                <Link href={`/q/${queueId}`}>
-                  <Logo />
-                </Link>
-              </h1>
-              <QueuePicker queues={queues} currentQueueId={queueId} />
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4">
+          <div className="flex items-center justify-between gap-2">
+            <h1>
+              <Link href={`/q/${queueId}`}>
+                <Logo />
+              </Link>
+            </h1>
             <div className="flex items-center gap-1">
+              {/* Primary actions — desktop only */}
               <Link
                 href={`/q/${queueId}/search`}
-                className="px-4 py-2 rounded bg-white/20 hover:bg-white/30 text-white font-semibold text-sm transition-colors"
+                className="hidden sm:inline-block px-4 py-2 rounded bg-white/20 hover:bg-white/30 text-white font-semibold text-sm transition-colors"
               >
                 + Add show
               </Link>
               <Link
                 href={`/q/${queueId}/discover`}
-                className="px-4 py-2 rounded bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
+                className="hidden sm:inline-block px-4 py-2 rounded bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
               >
                 Discover
               </Link>
               <Link
                 href={`/q/${queueId}/analytics`}
                 title="Analytics"
-                className="p-2 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                className="hidden sm:inline-flex p-2 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                   <path d="M15.5 2A1.5 1.5 0 0 0 14 3.5v13a1.5 1.5 0 0 0 3 0v-13A1.5 1.5 0 0 0 15.5 2ZM9.5 6A1.5 1.5 0 0 0 8 7.5v9a1.5 1.5 0 0 0 3 0v-9A1.5 1.5 0 0 0 9.5 6ZM3.5 10A1.5 1.5 0 0 0 2 11.5v5a1.5 1.5 0 0 0 3 0v-5A1.5 1.5 0 0 0 3.5 10Z" />
                 </svg>
               </Link>
-              <Link
-                href="/about"
-                title="About Chillflix"
-                className="p-2 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clipRule="evenodd" />
-                </svg>
-              </Link>
-              <RefreshButton />
-              <SettingsMenu shareHref={shareHref} />
+              <SettingsMenu shareHref={shareHref} queueId={queueId} />
             </div>
           </div>
         </div>
       </header>
+
+      {/* Queue context bar */}
+      <div className="border-b border-[color:var(--border)] bg-[color:var(--background)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3">
+          <QueuePicker queues={queues} currentQueueId={queueId} />
+        </div>
+      </div>
+
       {children}
     </main>
   );
