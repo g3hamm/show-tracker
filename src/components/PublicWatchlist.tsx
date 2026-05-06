@@ -55,7 +55,7 @@ export function PublicWatchlist({ shows }: PublicWatchlistProps) {
       <div className="max-w-xl mx-auto px-6 sm:px-8">
         <h2 className="text-lg font-semibold mb-1">Currently watching</h2>
         <p className="text-xs text-[color:var(--muted)] mb-4">
-          Here&apos;s what we&apos;re watching right now.
+          Here&apos;s what&apos;s on their list right now.
         </p>
       </div>
       <div

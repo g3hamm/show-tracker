@@ -28,10 +28,8 @@ export default async function RecommendPage({ params, searchParams }: PageProps)
   const defaultName = slug?.[0] ? toProperCase(slug[0]) : undefined;
   const queueShareCode = typeof sp.q === "string" ? sp.q : undefined;
 
-  const [watchlist, queueInfo] = await Promise.all([
-    getPublicWatchlist(),
-    queueShareCode ? getRecommendPageInfo(queueShareCode) : null,
-  ]);
+  const queueInfo = queueShareCode ? await getRecommendPageInfo(queueShareCode) : null;
+  const watchlist = await getPublicWatchlist(queueInfo?.queueId);
 
   const heading = queueInfo
     ? `Recommend a show to ${queueInfo.displayName}`
