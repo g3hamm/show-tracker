@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 
 export const metadata = { title: "About — Chillflix" };
 
@@ -81,13 +82,7 @@ export default function AboutPage() {
       {/* Header */}
       <header className="bg-[#C01900] shadow-lg">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 py-4 flex items-center justify-between">
-          <Image
-            src="/chillflix-logo.png"
-            alt="Chillflix"
-            width={140}
-            height={40}
-            className="select-none opacity-95"
-          />
+          <Logo />
           <Link
             href="/"
             className="flex items-center gap-1.5 text-sm text-white/80 hover:text-white transition-colors"
@@ -105,7 +100,7 @@ export default function AboutPage() {
         <div className="flex items-end justify-between">
 
           {/* Cuppie — left, hidden on mobile */}
-          <div className="hidden sm:block flex-shrink-0 w-72 md:w-80 lg:w-[26rem] self-end">
+          <div className="hidden sm:block flex-shrink-0 w-72 md:w-80 lg:w-96 self-end">
             <Image
               src="/cuppie.png"
               alt=""
@@ -133,7 +128,7 @@ export default function AboutPage() {
           </div>
 
           {/* Couchie — right, hidden on mobile */}
-          <div className="hidden sm:block flex-shrink-0 w-64 md:w-72 lg:w-80 self-end">
+          <div className="hidden sm:block flex-shrink-0 w-72 md:w-80 lg:w-96 self-end">
             <Image
               src="/couchie.png"
               alt=""
