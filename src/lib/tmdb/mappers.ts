@@ -1,4 +1,5 @@
 import type { TmdbTvDetails, TmdbMovieDetails, TmdbWatchProviderResults, StoredWatchProvider } from "./types";
+import { normalizeProviders } from "@/lib/providers/normalize";
 
 const WATCH_REGION = process.env.WATCH_REGION ?? "US";
 
@@ -10,11 +11,13 @@ export function extractWatchProviders(
   if (!country) return null;
   const providers = country.flatrate ?? country.free ?? [];
   if (providers.length === 0) return null;
-  return providers
+  const sorted = providers
     .sort((a, b) => a.display_priority - b.display_priority)
     .map(({ provider_id, provider_name, logo_path }) => ({
       provider_id, provider_name, logo_path,
     }));
+  const normalized = normalizeProviders(sorted);
+  return normalized.length > 0 ? normalized : null;
 }
 
 // Row shape written into public.shows table.

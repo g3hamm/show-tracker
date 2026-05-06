@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { getShowById, getShowAcrossQueues } from "@/lib/shows/queries";
 import { getQueueById, getFamilySubscriptions } from "@/lib/families/queries";
+import { canonicalProviderName } from "@/lib/providers/normalize";
 import { tmdbPoster } from "@/lib/tmdb/client";
 import { formatShortDate, relativeDay } from "@/lib/dates";
 import { RemoveShowButton } from "@/components/RemoveShowButton";
@@ -50,7 +51,7 @@ export default async function ShowDetailPage({ params }: PageProps) {
 
   const isSoloQueue = queue?.type === "solo" && queue.owner_id === userId;
 
-  const subscribedIds = new Set(subscriptions.map((s) => s.provider_id));
+  const subscribedNames = new Set(subscriptions.map((s) => canonicalProviderName(s.provider_name)));
   const poster = tmdbPoster(show.poster_path, "w500");
   const isMovie = show.media_type === "movie";
 
@@ -117,7 +118,7 @@ export default async function ShowDetailPage({ params }: PageProps) {
               <WatchProviders
                 providers={show.watch_providers}
                 size="md"
-                subscribedIds={subscribedIds.size > 0 ? subscribedIds : undefined}
+                subscribedNames={subscribedNames.size > 0 ? subscribedNames : undefined}
                 showName={show.name}
               />
               <p className="text-[10px] text-[color:var(--muted)] mt-2">

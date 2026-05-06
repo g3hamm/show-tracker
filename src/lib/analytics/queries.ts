@@ -1,6 +1,7 @@
 import { getTurso } from "@/lib/turso/client";
 import { getFamilyByUserId } from "@/lib/families/queries";
 import type { StoredWatchProvider } from "@/lib/tmdb/types";
+import { normalizeProviders, canonicalProviderName } from "@/lib/providers/normalize";
 
 export interface ProviderAnalytics {
   provider_id: number;
@@ -67,9 +68,10 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
     }),
   ]);
 
+  // Normalise subscriptions to canonical names so variant provider IDs match.
   const subscriptions = subsResult.rows.map((r) => ({
     provider_id: r.provider_id as number,
-    provider_name: r.provider_name as string,
+    provider_name: canonicalProviderName(r.provider_name as string),
     logo_path: r.logo_path as string,
     monthly_cost: (r.monthly_cost as number | null) ?? null,
   }));
@@ -80,9 +82,10 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
     last_watched_at: string | null;
   }
 
-  const providerStats = new Map<number, ProviderAccum>(
+  // Key by canonical name so watch_provider variants all map to the right subscription.
+  const providerStatsByName = new Map<string, ProviderAccum>(
     subscriptions.map((s) => [
-      s.provider_id,
+      s.provider_name,
       {
         ...s,
         active_count: 0,
@@ -138,14 +141,15 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
     }
 
     if (row.watch_providers) {
-      let providers: StoredWatchProvider[] = [];
+      let rawProviders: StoredWatchProvider[] = [];
       try {
-        providers = JSON.parse(row.watch_providers as string) as StoredWatchProvider[];
+        rawProviders = JSON.parse(row.watch_providers as string) as StoredWatchProvider[];
       } catch {
         // skip malformed provider data
       }
-      for (const p of providers) {
-        const stat = providerStats.get(p.provider_id);
+      const normalizedProviders = normalizeProviders(rawProviders);
+      for (const p of normalizedProviders) {
+        const stat = providerStatsByName.get(p.provider_name);
         if (stat) {
           // Only count platforms the family actually subscribes to
           platform_counts[p.provider_name] = (platform_counts[p.provider_name] ?? 0) + 1;
@@ -168,7 +172,7 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
   }
 
   const now = new Date();
-  const providers: ProviderAnalytics[] = Array.from(providerStats.values()).map((s) => {
+  const providers: ProviderAnalytics[] = Array.from(providerStatsByName.values()).map((s) => {
     const avg_rating = s.rating_count > 0 ? s.rating_sum / s.rating_count : null;
     let days_since_last_watch: number | null = null;
     if (s.last_watched_at) {

@@ -2,6 +2,7 @@ import { getTurso } from "@/lib/turso/client";
 import { addDays, todayInAppTz } from "@/lib/dates";
 import type { ShowRow } from "./types";
 import type { TmdbEpisode, StoredWatchProvider } from "@/lib/tmdb/types";
+import { normalizeProviders } from "@/lib/providers/normalize";
 
 export const COMING_SOON_DAYS = 14;
 export const NEW_THIS_WEEK_DAYS = 7;
@@ -40,7 +41,10 @@ function mapRow(r: any): ShowRow {
     last_episode: safeParse<TmdbEpisode>(r.last_episode),
     next_air_date: r.next_air_date,
     last_air_date: r.last_air_date,
-    watch_providers: safeParse<StoredWatchProvider[]>(r.watch_providers),
+    watch_providers: (() => {
+      const raw = safeParse<StoredWatchProvider[]>(r.watch_providers);
+      return raw ? normalizeProviders(raw) : null;
+    })(),
     justwatch_url: (r.justwatch_url as string) ?? null,
     last_refreshed_at: r.last_refreshed_at,
     created_at: r.created_at,
