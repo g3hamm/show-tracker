@@ -100,29 +100,30 @@ export default function AboutPage() {
         </div>
       </header>
 
-      {/* Hero */}
-      <div className="bg-[#C01900] overflow-hidden">
-        <div className="max-w-4xl mx-auto px-6 sm:px-56 md:px-64 pb-16 pt-12 text-center relative">
-          {/* Flanking characters — hidden on mobile to avoid overlap */}
-          <div className="hidden sm:block absolute bottom-0 left-0 w-56 md:w-72 select-none pointer-events-none">
-            <Image
-              src="/cuppie.png"
-              alt=""
-              width={288}
-              height={288}
-              className="object-contain object-bottom w-full"
-            />
-          </div>
-          <div className="hidden sm:block absolute bottom-0 right-0 w-56 md:w-72 select-none pointer-events-none">
-            <Image
-              src="/couchie.png"
-              alt=""
-              width={288}
-              height={288}
-              className="object-contain object-bottom w-full"
-            />
-          </div>
+      {/* Hero — images anchored to full-width wrapper, text in constrained centre */}
+      <div className="bg-[#C01900] overflow-hidden relative">
+        {/* Characters at true page edges, hidden on mobile */}
+        <div className="hidden sm:block absolute bottom-0 left-0 w-64 md:w-80 lg:w-96 select-none pointer-events-none">
+          <Image
+            src="/cuppie.png"
+            alt=""
+            width={384}
+            height={384}
+            className="object-contain object-bottom w-full"
+          />
+        </div>
+        <div className="hidden sm:block absolute bottom-0 right-0 w-64 md:w-80 lg:w-96 select-none pointer-events-none">
+          <Image
+            src="/couchie.png"
+            alt=""
+            width={384}
+            height={384}
+            className="object-contain object-bottom w-full"
+          />
+        </div>
 
+        {/* Text — narrow enough to stay clear of both characters */}
+        <div className="relative max-w-sm mx-auto px-6 pb-20 pt-12 text-center">
           <div className="inline-block text-[10px] uppercase tracking-widest font-semibold text-white/60 bg-white/10 border border-white/20 rounded-full px-3 py-1 mb-5">
             About us
           </div>
@@ -130,7 +131,7 @@ export default function AboutPage() {
             We built the app for<br />
             <em className="italic opacity-80">the other 45 minutes.</em>
           </h1>
-          <p className="text-base text-white/70 leading-relaxed max-w-md mx-auto mb-6">
+          <p className="text-base text-white/70 leading-relaxed mb-6">
             The ones you spent scrolling, switching apps, arguing, and forgetting — before you ever pressed play.
           </p>
           <span className="inline-block text-sm font-medium text-white/75 bg-white/10 border border-white/20 rounded-full px-5 py-2">
