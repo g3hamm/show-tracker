@@ -16,6 +16,7 @@ export function ShowCard({ show, badge }: ShowCardProps) {
   const poster = tmdbPoster(show.poster_path, "w342");
   const today = todayInAppTz();
   const isMovie = show.media_type === "movie";
+  const href = `/q/${show.queue_id}/show/${show.id}`;
 
   let badgeText: string | null = null;
   let subline: string | null = null;
@@ -52,7 +53,8 @@ export function ShowCard({ show, badge }: ShowCardProps) {
 
   return (
     <div className="group relative flex flex-col rounded overflow-hidden bg-[color:var(--surface)] border border-transparent hover:scale-105 hover:shadow-xl hover:shadow-black/50 hover:z-10 transition-all duration-200">
-      <Link href={`/q/${show.queue_id}/show/${show.id}`} className="block">
+      {/* Poster — links to detail page */}
+      <Link href={href} className="block">
         <div className="aspect-[2/3] relative bg-[color:var(--surface-elevated)]">
           {poster ? (
             <Image
@@ -90,33 +92,40 @@ export function ShowCard({ show, badge }: ShowCardProps) {
             </span>
           )}
         </div>
-        <div className="p-3 pb-2">
+      </Link>
+
+      {/* Metadata — outside the link so provider logos can be <a> tags */}
+      <div className="p-3 pb-2 flex-1">
+        <Link href={href}>
           <h3 className="font-medium text-sm truncate">{show.name}</h3>
           {subline && (
-            <p className="text-xs text-[color:var(--muted)] truncate mt-0.5">
-              {subline}
-            </p>
+            <p className="text-xs text-[color:var(--muted)] truncate mt-0.5">{subline}</p>
           )}
-          <div className="mt-1">
-            <WatchProviders providers={show.watch_providers} size="sm" />
-          </div>
-          {show.recommended_by && (
-            <p className="text-[10px] text-amber-400 truncate mt-1">
-              Rec&apos;d by {show.recommended_by}
-            </p>
-          )}
-          {show.recommendation_note && (
-            <p className="text-[10px] text-[color:var(--foreground)]/60 italic truncate mt-0.5">
-              &ldquo;{show.recommendation_note}&rdquo;
-            </p>
-          )}
-          {show.added_by_name && !show.recommended_by && (
-            <p className="text-[10px] text-[color:var(--muted)] truncate mt-1">
-              Added by {show.added_by_name}
-            </p>
-          )}
+        </Link>
+        <div className="mt-1">
+          <WatchProviders
+            providers={show.watch_providers}
+            size="sm"
+            showName={show.name}
+          />
         </div>
-      </Link>
+        {show.recommended_by && (
+          <p className="text-[10px] text-amber-400 truncate mt-1">
+            Rec&apos;d by {show.recommended_by}
+          </p>
+        )}
+        {show.recommendation_note && (
+          <p className="text-[10px] text-[color:var(--foreground)]/60 italic truncate mt-0.5">
+            &ldquo;{show.recommendation_note}&rdquo;
+          </p>
+        )}
+        {show.added_by_name && !show.recommended_by && (
+          <p className="text-[10px] text-[color:var(--muted)] truncate mt-1">
+            Added by {show.added_by_name}
+          </p>
+        )}
+      </div>
+
       <div className="px-3 pb-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <ArchiveToggle id={show.queue_show_id} archived={show.archived} />
         <RemoveShowButton id={show.queue_show_id} />
