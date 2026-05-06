@@ -299,7 +299,7 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
                 overview = ?, status = ?, first_air_date = ?,
                 next_episode = ?, last_episode = ?,
                 next_air_date = ?, last_air_date = ?,
-                watch_providers = ?, last_refreshed_at = ?
+                watch_providers = ?, genres = ?, last_refreshed_at = ?
                 WHERE id = ?`,
           args: [
             row.name, row.poster_path, row.backdrop_path,
@@ -308,6 +308,7 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
             row.last_episode ? JSON.stringify(row.last_episode) : null,
             row.next_air_date, row.last_air_date,
             row.watch_providers ? JSON.stringify(row.watch_providers) : null,
+            row.genres ? JSON.stringify(row.genres) : null,
             row.last_refreshed_at, showId,
           ],
         });
