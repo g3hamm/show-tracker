@@ -35,8 +35,8 @@ export function RecommendForm({ defaultName, queueShareCode }: RecommendFormProp
 
   useEffect(() => {
     mountedAt.current = Date.now();
-    getTrackedShowsPublic().then(setTrackedShows).catch(() => {});
-  }, []);
+    getTrackedShowsPublic(queueShareCode).then(setTrackedShows).catch(() => {});
+  }, [queueShareCode]);
 
   useEffect(() => {
     if (picked && picked.name === title) return;
