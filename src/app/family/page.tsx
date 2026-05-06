@@ -3,15 +3,11 @@ import { auth } from "@clerk/nextjs/server";
 import {
   getFamilyByUserId,
   getFamilyMembers,
-  getFamilySubscriptions,
   getGroupQueuesWithMembers,
-  getUniqueProvidersFromShows,
 } from "@/lib/families/queries";
-import { tmdbGetWatchProviderList } from "@/lib/tmdb/client";
 import { MemberList } from "@/components/family/MemberList";
 import { InviteGenerator } from "@/components/family/InviteGenerator";
 import { GroupQueueManager } from "@/components/family/GroupQueueManager";
-import { StreamingSubscriptions } from "@/components/family/StreamingSubscriptions";
 import { DisplayNameEditor } from "@/components/family/DisplayNameEditor";
 
 export const dynamic = "force-dynamic";
@@ -23,13 +19,10 @@ export default async function FamilyPage() {
   const family = await getFamilyByUserId(userId);
   if (!family) redirect("/family/setup");
 
-  const [members, subscriptions, { queues: groupQueues, membersByQueue }, showProviders, tmdbProviders] =
+  const [members, { queues: groupQueues, membersByQueue }] =
     await Promise.all([
       getFamilyMembers(family.id),
-      getFamilySubscriptions(family.id),
       getGroupQueuesWithMembers(family.id),
-      getUniqueProvidersFromShows(),
-      tmdbGetWatchProviderList().catch(() => []),
     ]);
 
   const currentMember = members.find((m) => m.user_id === userId);
@@ -71,14 +64,6 @@ export default async function FamilyPage() {
         />
       </Section>
 
-      <Section title="Streaming subscriptions" subtitle="Which services does your family pay for?">
-        <StreamingSubscriptions
-          familyId={family.id}
-          current={subscriptions}
-          showProviders={showProviders}
-          tmdbProviders={tmdbProviders}
-        />
-      </Section>
     </div>
   );
 }
