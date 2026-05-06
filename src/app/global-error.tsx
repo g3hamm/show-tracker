@@ -3,7 +3,7 @@
 export default function GlobalError({ reset }: { reset: () => void }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, background: "#000", color: "#fff", fontFamily: "sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", textAlign: "center", padding: "2rem" }}>
+      <body style={{ margin: 0, background: "#C01900", color: "#fff", fontFamily: "sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", textAlign: "center", padding: "2rem" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/chillflix-logo.png" alt="Chillflix" style={{ width: 180, opacity: 0.85, marginBottom: "1.5rem" }} />
         <p style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "0.5rem" }}>Something very UNCHILL just occurred.</p>
