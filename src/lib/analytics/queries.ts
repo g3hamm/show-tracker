@@ -126,8 +126,11 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
     if (row.genres) {
       try {
         const genres = JSON.parse(row.genres as string) as string[];
-        for (const g of genres) {
-          genre_counts[g] = (genre_counts[g] ?? 0) + 1;
+        if (genres.length > 0) {
+          const weight = 1 / genres.length;
+          for (const g of genres) {
+            genre_counts[g] = (genre_counts[g] ?? 0) + weight;
+          }
         }
       } catch {
         // skip malformed genre data
@@ -142,10 +145,10 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
         // skip malformed provider data
       }
       for (const p of providers) {
-        platform_counts[p.provider_name] = (platform_counts[p.provider_name] ?? 0) + 1;
-
         const stat = providerStats.get(p.provider_id);
         if (stat) {
+          // Only count platforms the family actually subscribes to
+          platform_counts[p.provider_name] = (platform_counts[p.provider_name] ?? 0) + 1;
           if (isArchived) {
             stat.watched_count++;
             if (row.rating !== null) {
