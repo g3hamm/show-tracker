@@ -5,7 +5,6 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { getTurso } from "@/lib/turso/client";
 import { tmdbSearchTv, tmdbGetTv, tmdbSearchMovie, tmdbGetMovie } from "@/lib/tmdb/client";
 import { mapTvDetailsToRow, mapMovieDetailsToRow } from "@/lib/tmdb/mappers";
-import { fetchJustWatchUrl } from "@/lib/justwatch/client";
 import type { MediaRowFromTmdb } from "@/lib/tmdb/mappers";
 import { emailEnabled, getResend } from "@/lib/email/client";
 import { watchedItEmail } from "@/lib/email/templates";
@@ -83,8 +82,7 @@ async function upsertCatalog(row: MediaRowFromTmdb): Promise<string> {
             overview = ?, status = ?, first_air_date = ?,
             next_episode = ?, last_episode = ?,
             next_air_date = ?, last_air_date = ?,
-            watch_providers = ?, justwatch_url = COALESCE(?, justwatch_url),
-            last_refreshed_at = ?
+            watch_providers = ?, last_refreshed_at = ?
             WHERE id = ?`,
       args: [
         row.name, row.poster_path, row.backdrop_path,
@@ -93,7 +91,6 @@ async function upsertCatalog(row: MediaRowFromTmdb): Promise<string> {
         row.last_episode ? JSON.stringify(row.last_episode) : null,
         row.next_air_date, row.last_air_date,
         row.watch_providers ? JSON.stringify(row.watch_providers) : null,
-        row.justwatch_url ?? null,
         row.last_refreshed_at, id,
       ],
     });
@@ -104,8 +101,8 @@ async function upsertCatalog(row: MediaRowFromTmdb): Promise<string> {
   await getTurso().execute({
     sql: `INSERT INTO shows (id, media_type, tmdb_id, name, poster_path, backdrop_path,
           overview, status, first_air_date, next_episode, last_episode,
-          next_air_date, last_air_date, watch_providers, justwatch_url, last_refreshed_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          next_air_date, last_air_date, watch_providers, last_refreshed_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       id, row.media_type, row.tmdb_id, row.name,
       row.poster_path, row.backdrop_path, row.overview, row.status,
@@ -114,7 +111,6 @@ async function upsertCatalog(row: MediaRowFromTmdb): Promise<string> {
       row.last_episode ? JSON.stringify(row.last_episode) : null,
       row.next_air_date, row.last_air_date,
       row.watch_providers ? JSON.stringify(row.watch_providers) : null,
-      row.justwatch_url ?? null,
       row.last_refreshed_at,
     ],
   });
@@ -140,8 +136,6 @@ export async function addShow(
     const details = await tmdbGetTv(tmdbId);
     row = mapTvDetailsToRow(details);
   }
-
-  row.justwatch_url = await fetchJustWatchUrl(tmdbId, mediaType, row.name);
 
   const showId = await upsertCatalog(row);
 
@@ -272,7 +266,7 @@ export async function togglePrivate(queueShowId: string): Promise<void> {
 
 export async function refreshAllShows(): Promise<{ refreshed: number; failed: number; unarchived: number }> {
   const result = await getTurso().execute(
-    "SELECT id, tmdb_id, media_type, name, justwatch_url FROM shows WHERE tmdb_id IS NOT NULL",
+    "SELECT id, tmdb_id, media_type FROM shows WHERE tmdb_id IS NOT NULL",
   );
 
   let refreshed = 0;
@@ -288,8 +282,6 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
         const showId = s.id as string;
         const tmdbId = s.tmdb_id as number;
         const mediaType = s.media_type as string;
-        const showName = s.name as string;
-        const existingJwUrl = (s.justwatch_url as string) ?? null;
 
         let row: MediaRowFromTmdb;
         if (mediaType === "movie") {
@@ -300,18 +292,12 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
           row = mapTvDetailsToRow(details);
         }
 
-        // Backfill JustWatch URL for shows that don't have one yet.
-        if (!existingJwUrl) {
-          row.justwatch_url = await fetchJustWatchUrl(tmdbId, mediaType === "movie" ? "movie" : "show", showName);
-        }
-
         await getTurso().execute({
           sql: `UPDATE shows SET name = ?, poster_path = ?, backdrop_path = ?,
                 overview = ?, status = ?, first_air_date = ?,
                 next_episode = ?, last_episode = ?,
                 next_air_date = ?, last_air_date = ?,
-                watch_providers = ?, justwatch_url = COALESCE(?, justwatch_url),
-                last_refreshed_at = ?
+                watch_providers = ?, last_refreshed_at = ?
                 WHERE id = ?`,
           args: [
             row.name, row.poster_path, row.backdrop_path,
@@ -320,7 +306,6 @@ export async function refreshAllShows(): Promise<{ refreshed: number; failed: nu
             row.last_episode ? JSON.stringify(row.last_episode) : null,
             row.next_air_date, row.last_air_date,
             row.watch_providers ? JSON.stringify(row.watch_providers) : null,
-            row.justwatch_url ?? null,
             row.last_refreshed_at, showId,
           ],
         });
