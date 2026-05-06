@@ -13,10 +13,15 @@ export interface RecommendationRow {
   created_at: string;
 }
 
-export async function listRecommendations(): Promise<RecommendationRow[]> {
-  const result = await getTurso().execute(
-    "SELECT * FROM recommendations ORDER BY created_at DESC",
-  );
+export async function listRecommendations(queueId?: string): Promise<RecommendationRow[]> {
+  const result = queueId
+    ? await getTurso().execute({
+        sql: "SELECT * FROM recommendations WHERE queue_id = ? OR queue_id IS NULL ORDER BY created_at DESC",
+        args: [queueId],
+      })
+    : await getTurso().execute(
+        "SELECT * FROM recommendations ORDER BY created_at DESC",
+      );
   return result.rows.map((r) => ({
     id: r.id as string,
     media_type: r.media_type as string,

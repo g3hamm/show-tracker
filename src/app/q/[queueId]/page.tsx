@@ -23,7 +23,7 @@ export default async function QueueDashboardPage({ params }: PageProps) {
     getNewThisWeek(queueId),
     getComingSoon(queueId),
     getAllTrackedShows(queueId),
-    listRecommendations(),
+    listRecommendations(queueId),
     getFinishedShows(queueId),
   ]);
 

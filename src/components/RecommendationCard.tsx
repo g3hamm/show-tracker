@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { RecommendationRow } from "@/lib/recommendations/queries";
 import { tmdbPoster } from "@/lib/tmdb/client";
 import { AddRecommendationButton } from "./AddRecommendationButton";
+import { FindAndAddButton } from "./FindAndAddButton";
 import { DismissRecommendationButton } from "./DismissRecommendationButton";
 
 export function RecommendationCard({ rec, queueId }: { rec: RecommendationRow; queueId: string }) {
@@ -50,12 +51,21 @@ export function RecommendationCard({ rec, queueId }: { rec: RecommendationRow; q
         </p>
       )}
 
-      <div className="flex gap-2">
-        {rec.tmdb_id != null && (
+      <div className="flex gap-2 flex-wrap">
+        {rec.tmdb_id != null ? (
           <AddRecommendationButton
             queueId={queueId}
             tmdbId={rec.tmdb_id}
             mediaType={mediaType}
+            recommenderName={rec.recommender_name}
+            recommenderEmail={rec.recommender_email}
+            recommendationNote={rec.note}
+            recommendationId={rec.id}
+          />
+        ) : (
+          <FindAndAddButton
+            queueId={queueId}
+            title={rec.title}
             recommenderName={rec.recommender_name}
             recommenderEmail={rec.recommender_email}
             recommendationNote={rec.note}

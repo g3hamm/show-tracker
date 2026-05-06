@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { auth } from "@clerk/nextjs/server";
 import { getTurso } from "@/lib/turso/client";
 import { tmdbSearchTv, tmdbSearchMovie } from "@/lib/tmdb/client";
+import { getQueueByShareCode } from "@/lib/families/queries";
 import { emailEnabled, getResend } from "@/lib/email/client";
 import { newRecommendationEmail } from "@/lib/email/templates";
 
@@ -95,6 +96,7 @@ export interface RecommendInput {
   note?: string;
   website?: string;
   elapsedMs?: number;
+  queueShareCode?: string;
 }
 
 export interface RecommendResult {
@@ -161,13 +163,19 @@ export async function submitRecommendation(
 
   const mediaType = input.mediaType ?? "show";
 
+  let queueId: string | null = null;
+  if (input.queueShareCode) {
+    const queue = await getQueueByShareCode(input.queueShareCode);
+    if (queue) queueId = queue.id;
+  }
+
   try {
     const id = crypto.randomUUID();
     await getTurso().execute({
-      sql: `INSERT INTO recommendations (id, media_type, tmdb_id, title, poster_path, recommender_name, recommender_email, note, overview)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      sql: `INSERT INTO recommendations (id, queue_id, media_type, tmdb_id, title, poster_path, recommender_name, recommender_email, note, overview)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
-        id, mediaType,
+        id, queueId, mediaType,
         input.tmdbId ?? null,
         title,
         input.posterPath ?? null,

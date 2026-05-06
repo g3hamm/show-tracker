@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { isQueueMember, getQueuesForUser } from "@/lib/families/queries";
+import { isQueueMember, getQueuesForUser, getQueueById } from "@/lib/families/queries";
 import { QueuePicker } from "@/components/QueuePicker";
 import { SignOutButton } from "@/components/SignOutButton";
 import { RefreshNowButton } from "@/components/RefreshNowButton";
@@ -18,10 +18,16 @@ export default async function QueueLayout({
   const { userId } = await auth();
   if (!userId) redirect("/login");
 
-  const hasAccess = await isQueueMember(queueId, userId);
+  const [hasAccess, queue, queues] = await Promise.all([
+    isQueueMember(queueId, userId),
+    getQueueById(queueId),
+    getQueuesForUser(userId),
+  ]);
   if (!hasAccess) redirect("/");
 
-  const queues = await getQueuesForUser(userId);
+  const shareHref = queue?.share_code
+    ? `/recommend?q=${queue.share_code}`
+    : "/recommend";
 
   return (
     <main className="min-h-screen">
@@ -46,7 +52,7 @@ export default async function QueueLayout({
               + Add show
             </Link>
             <Link
-              href="/recommend"
+              href={shareHref}
               className="px-4 py-2 rounded bg-white/10 hover:bg-white/20 text-white transition-colors"
             >
               Share link

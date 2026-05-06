@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getPublicWatchlist } from "@/lib/shows/public-queries";
+import { getRecommendPageInfo } from "@/lib/families/queries";
 import { PublicWatchlist } from "@/components/PublicWatchlist";
 import { Logo } from "@/components/Logo";
 import { RecommendForm } from "../RecommendForm";
@@ -19,12 +20,22 @@ function toProperCase(slug: string): string {
 
 interface PageProps {
   params: Promise<{ slug?: string[] }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function RecommendPage({ params }: PageProps) {
-  const { slug } = await params;
+export default async function RecommendPage({ params, searchParams }: PageProps) {
+  const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const defaultName = slug?.[0] ? toProperCase(slug[0]) : undefined;
-  const watchlist = await getPublicWatchlist();
+  const queueShareCode = typeof sp.q === "string" ? sp.q : undefined;
+
+  const [watchlist, queueInfo] = await Promise.all([
+    getPublicWatchlist(),
+    queueShareCode ? getRecommendPageInfo(queueShareCode) : null,
+  ]);
+
+  const heading = queueInfo
+    ? `Recommend a show to ${queueInfo.displayName}`
+    : "Recommend a show";
 
   return (
     <main className="min-h-screen">
@@ -41,13 +52,13 @@ export default async function RecommendPage({ params }: PageProps) {
       </div>
 
       <div className="max-w-xl mx-auto px-6 sm:px-8 mt-8">
-        <h1 className="text-2xl font-bold tracking-tight">Recommend a show</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{heading}</h1>
         <p className="text-sm text-[color:var(--muted)] mt-1 mb-6">
-          Think of a show we&apos;d love? Drop it below and we&apos;ll see it on our
+          Think of a show {queueInfo ? "they" : "we"}&apos;d love? Drop it below and {queueInfo ? "they" : "we"}&apos;ll see it on {queueInfo ? "their" : "our"}{" "}
           dashboard. No account needed.
         </p>
 
-        <RecommendForm defaultName={defaultName} />
+        <RecommendForm defaultName={defaultName} queueShareCode={queueShareCode} />
       </div>
 
       <PublicWatchlist shows={watchlist} />

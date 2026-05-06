@@ -202,6 +202,25 @@ export async function getGroupQueuesWithMembers(familyId: string): Promise<{
   return { queues, membersByQueue };
 }
 
+export async function getRecommendPageInfo(
+  shareCode: string,
+): Promise<{ displayName: string; queueId: string } | null> {
+  const queue = await getQueueByShareCode(shareCode);
+  if (!queue) return null;
+
+  if (queue.type === "solo" && queue.owner_id) {
+    const result = await getTurso().execute({
+      sql: "SELECT display_name FROM users WHERE id = ?",
+      args: [queue.owner_id],
+    });
+    const name = (result.rows[0]?.display_name as string) ?? "them";
+    return { displayName: name, queueId: queue.id };
+  }
+
+  const family = await getFamilyById(queue.family_id);
+  return { displayName: family?.name ?? queue.name, queueId: queue.id };
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapQueue(r: any): Queue {
   return {

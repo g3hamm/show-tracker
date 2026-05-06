@@ -13,9 +13,10 @@ import { tmdbPoster } from "@/lib/tmdb/client";
 
 interface RecommendFormProps {
   defaultName?: string;
+  queueShareCode?: string;
 }
 
-export function RecommendForm({ defaultName }: RecommendFormProps) {
+export function RecommendForm({ defaultName, queueShareCode }: RecommendFormProps) {
   const [name, setName] = useState(defaultName ?? "");
   const [email, setEmail] = useState("");
   const [title, setTitle] = useState("");
@@ -97,6 +98,7 @@ export function RecommendForm({ defaultName }: RecommendFormProps) {
         note,
         website,
         elapsedMs: Date.now() - mountedAt.current,
+        queueShareCode,
       });
       if (result.ok) {
         setSubmitted(true);
