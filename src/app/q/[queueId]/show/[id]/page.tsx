@@ -23,16 +23,32 @@ interface PageProps {
 export default async function ShowDetailPage({ params }: PageProps) {
   const { queueId, id } = await params;
   const { userId } = await auth();
-  const show = await getShowById(queueId, id);
+
+  let show: Awaited<ReturnType<typeof getShowById>>;
+  let queue: Awaited<ReturnType<typeof getQueueById>>;
+  let crossQueue: Awaited<ReturnType<typeof getShowAcrossQueues>> = [];
+  let subscriptions: Awaited<ReturnType<typeof getFamilySubscriptions>> = [];
+
+  try {
+    show = await getShowById(queueId, id);
+  } catch (err) {
+    console.error("[ShowDetail] getShowById failed", { queueId, id, err: String(err) });
+    throw err;
+  }
   if (!show) notFound();
 
-  const queue = await getQueueById(queueId);
-  const isSoloQueue = queue?.type === "solo" && queue.owner_id === userId;
+  try {
+    queue = await getQueueById(queueId);
+    [crossQueue, subscriptions] = await Promise.all([
+      queue ? getShowAcrossQueues(id, queue.family_id, queueId) : Promise.resolve([]),
+      queue ? getFamilySubscriptions(queue.family_id) : Promise.resolve([]),
+    ]);
+  } catch (err) {
+    console.error("[ShowDetail] secondary queries failed", { queueId, id, err: String(err) });
+    queue = null;
+  }
 
-  const [crossQueue, subscriptions] = await Promise.all([
-    queue ? getShowAcrossQueues(id, queue.family_id, queueId) : [],
-    queue ? getFamilySubscriptions(queue.family_id) : [],
-  ]);
+  const isSoloQueue = queue?.type === "solo" && queue.owner_id === userId;
 
   const subscribedIds = new Set(subscriptions.map((s) => s.provider_id));
   const poster = tmdbPoster(show.poster_path, "w500");

@@ -21,7 +21,7 @@ export function ErrorScreen({ reset }: ErrorScreenProps) {
   const joke = JOKES[Math.floor(Math.random() * JOKES.length)];
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black gap-6 px-6 text-center">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#C01900] gap-6 px-6 text-center">
       <Image
         src="/chillflix-logo.png"
         alt="Chillflix"
