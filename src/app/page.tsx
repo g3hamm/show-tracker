@@ -8,7 +8,12 @@ export default async function RootPage() {
   const { userId } = await auth();
   if (!userId) redirect("/login");
 
-  const defaultQueue = await getDefaultQueueForUser(userId);
+  let defaultQueue = null;
+  try {
+    defaultQueue = await getDefaultQueueForUser(userId);
+  } catch {
+    redirect("/family/setup");
+  }
   if (!defaultQueue) redirect("/family/setup");
 
   redirect(`/q/${defaultQueue.id}`);
