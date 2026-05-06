@@ -97,6 +97,7 @@ export interface RecommendInput {
   website?: string;
   elapsedMs?: number;
   queueShareCode?: string;
+  targetQueueIds?: string[]; // empty = all queues (null queue_id)
 }
 
 export interface RecommendResult {
@@ -166,28 +167,34 @@ export async function submitRecommendation(
 
   const mediaType = input.mediaType ?? "show";
 
-  let queueId: string | null = null;
-  if (input.queueShareCode) {
+  // Resolve target queue IDs. Empty selection → [null] (reaches all queues).
+  let queueIds: (string | null)[];
+  if (input.targetQueueIds && input.targetQueueIds.length > 0) {
+    queueIds = input.targetQueueIds;
+  } else if (input.queueShareCode) {
     const queue = await getQueueByShareCode(input.queueShareCode);
-    if (queue) queueId = queue.id;
+    queueIds = queue ? [queue.id] : [null];
+  } else {
+    queueIds = [null];
   }
 
   try {
-    const id = crypto.randomUUID();
-    await getTurso().execute({
-      sql: `INSERT INTO recommendations (id, queue_id, media_type, tmdb_id, title, poster_path, recommender_name, recommender_email, note, overview)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [
-        id, queueId, mediaType,
-        input.tmdbId ?? null,
-        title,
-        input.posterPath ?? null,
-        name,
-        email.length > 0 ? email : null,
-        note.length > 0 ? note : null,
-        input.overview ?? null,
-      ],
-    });
+    for (const queueId of queueIds) {
+      await getTurso().execute({
+        sql: `INSERT INTO recommendations (id, queue_id, media_type, tmdb_id, title, poster_path, recommender_name, recommender_email, note, overview)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          crypto.randomUUID(), queueId, mediaType,
+          input.tmdbId ?? null,
+          title,
+          input.posterPath ?? null,
+          name,
+          email.length > 0 ? email : null,
+          note.length > 0 ? note : null,
+          input.overview ?? null,
+        ],
+      });
+    }
   } catch {
     return { ok: false, error: "Could not save your recommendation." };
   }
@@ -210,6 +217,39 @@ export async function submitRecommendation(
 
   revalidatePath("/");
   return { ok: true };
+}
+
+// --- Public: get queues available for targeting a recommendation ---
+
+export interface QueueOption {
+  id: string;
+  label: string;
+  type: "solo" | "group";
+}
+
+export async function getQueuesForRecommendPage(
+  queueShareCode: string,
+): Promise<QueueOption[]> {
+  const queue = await getQueueByShareCode(queueShareCode);
+  if (!queue) return [];
+
+  const result = await getTurso().execute({
+    sql: `SELECT q.id, q.name, q.type, q.owner_id, u.display_name
+          FROM queues q
+          LEFT JOIN users u ON q.owner_id = u.id
+          WHERE q.family_id = ?
+          ORDER BY q.type ASC, q.name ASC`,
+    args: [queue.family_id],
+  });
+
+  return result.rows.map((r) => ({
+    id: r.id as string,
+    label:
+      r.type === "solo"
+        ? ((r.display_name as string) ?? (r.name as string))
+        : (r.name as string),
+    type: r.type as "solo" | "group",
+  }));
 }
 
 // --- Public: get tracked/watched TMDB IDs (for "watched" overlay) ---

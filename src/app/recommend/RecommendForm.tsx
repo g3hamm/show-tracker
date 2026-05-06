@@ -6,8 +6,10 @@ import {
   publicSearchShows,
   submitRecommendation,
   getTrackedShowsPublic,
+  getQueuesForRecommendPage,
   type PublicSearchResult,
   type TrackedShowInfo,
+  type QueueOption,
 } from "@/lib/recommendations/actions";
 import { tmdbPoster } from "@/lib/tmdb/client";
 
@@ -30,13 +32,27 @@ export function RecommendForm({ defaultName, queueShareCode }: RecommendFormProp
   const [error, setError] = useState<string | null>(null);
   const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
   const [trackedShows, setTrackedShows] = useState<TrackedShowInfo[]>([]);
+  const [queueOptions, setQueueOptions] = useState<QueueOption[]>([]);
+  const [selectedQueueIds, setSelectedQueueIds] = useState<Set<string>>(new Set());
   const mountedAt = useRef<number>(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     mountedAt.current = Date.now();
     getTrackedShowsPublic(queueShareCode).then(setTrackedShows).catch(() => {});
+    if (queueShareCode) {
+      getQueuesForRecommendPage(queueShareCode).then(setQueueOptions).catch(() => {});
+    }
   }, [queueShareCode]);
+
+  function toggleQueue(id: string) {
+    setSelectedQueueIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   useEffect(() => {
     if (picked && picked.name === title) return;
@@ -103,6 +119,7 @@ export function RecommendForm({ defaultName, queueShareCode }: RecommendFormProp
         website,
         elapsedMs: Date.now() - mountedAt.current,
         queueShareCode,
+        targetQueueIds: selectedQueueIds.size > 0 ? [...selectedQueueIds] : undefined,
       });
       if (result.ok) {
         setSubmitted(true);
@@ -288,6 +305,42 @@ export function RecommendForm({ defaultName, queueShareCode }: RecommendFormProp
           <p className="text-[10px] text-[color:var(--muted)] mt-1">Searching…</p>
         )}
       </div>
+
+      {queueOptions.length > 1 && (
+        <div>
+          <label className="block text-xs text-[color:var(--muted)] mb-1.5">
+            Who should see this?{" "}
+            <span className="opacity-60">(optional — leave blank for everyone)</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {queueOptions.map((q) => {
+              const checked = selectedQueueIds.has(q.id);
+              return (
+                <button
+                  key={q.id}
+                  type="button"
+                  onClick={() => toggleQueue(q.id)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                    checked
+                      ? "bg-[color:var(--accent)] border-[color:var(--accent)] text-white"
+                      : "bg-transparent border-[color:var(--border)] text-[color:var(--muted)] hover:border-[color:var(--foreground)]/40 hover:text-[color:var(--foreground)]"
+                  }`}
+                >
+                  {q.type === "group" && (
+                    <span className="mr-1 opacity-60">&#x1F465;</span>
+                  )}
+                  {q.label}
+                </button>
+              );
+            })}
+          </div>
+          {selectedQueueIds.size === 0 && (
+            <p className="text-[10px] text-[color:var(--muted)] mt-1.5">
+              Everyone in this account will see your recommendation.
+            </p>
+          )}
+        </div>
+      )}
 
       <div>
         <label className="block text-xs text-[color:var(--muted)] mb-1">
