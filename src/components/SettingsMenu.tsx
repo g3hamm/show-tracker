@@ -153,6 +153,17 @@ export function SettingsMenu({ shareHref, queueId }: { shareHref?: string; queue
               </button>
 
               <Link
+                href="/guide"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-[color:var(--surface)] transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-[color:var(--muted)]">
+                  <path d="M10.75 16.82A7.462 7.462 0 0 1 10 17c-.314 0-.62-.02-.918-.057A7.5 7.5 0 0 1 2.5 9.5a7.5 7.5 0 0 1 7.5-7.5 7.5 7.5 0 0 1 7.5 7.5c0 1.61-.507 3.103-1.371 4.326L18 16.5l-3.75-.75a7.46 7.46 0 0 1-3.5 1.07Z" />
+                  <path fillRule="evenodd" d="M10 3.5a6 6 0 1 0 0 12A6 6 0 0 0 10 3.5ZM10 7a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 7Zm0-1.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clipRule="evenodd" />
+                </svg>
+                User Guide
+              </Link>
+              <Link
                 href="/about"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-[color:var(--surface)] transition-colors"
