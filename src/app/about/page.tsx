@@ -100,43 +100,49 @@ export default function AboutPage() {
         </div>
       </header>
 
-      {/* Hero — images anchored to full-width wrapper, text in constrained centre */}
-      <div className="bg-[#C01900] overflow-hidden relative">
-        {/* Characters at true page edges, hidden on mobile */}
-        <div className="hidden sm:block absolute bottom-0 left-0 w-64 md:w-80 lg:w-96 select-none pointer-events-none">
-          <Image
-            src="/cuppie.png"
-            alt=""
-            width={384}
-            height={384}
-            className="object-contain object-bottom w-full"
-          />
-        </div>
-        <div className="hidden sm:block absolute bottom-0 right-0 w-64 md:w-80 lg:w-96 select-none pointer-events-none">
-          <Image
-            src="/couchie.png"
-            alt=""
-            width={384}
-            height={384}
-            className="object-contain object-bottom w-full"
-          />
-        </div>
+      {/* Hero — three-column flex: image | text | image */}
+      <div className="bg-[#C01900] overflow-hidden">
+        <div className="flex items-end justify-between">
 
-        {/* Text — narrow enough to stay clear of both characters */}
-        <div className="relative max-w-sm mx-auto px-6 pb-20 pt-12 text-center">
-          <div className="inline-block text-[10px] uppercase tracking-widest font-semibold text-white/60 bg-white/10 border border-white/20 rounded-full px-3 py-1 mb-5">
-            About us
+          {/* Cuppie — left, hidden on mobile */}
+          <div className="hidden sm:block flex-shrink-0 w-72 md:w-80 lg:w-[26rem] self-end">
+            <Image
+              src="/cuppie.png"
+              alt=""
+              width={416}
+              height={416}
+              className="object-contain object-bottom w-full"
+            />
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight tracking-tight mb-4">
-            We built the app for<br />
-            <em className="italic opacity-80">the other 45 minutes.</em>
-          </h1>
-          <p className="text-base text-white/70 leading-relaxed mb-6">
-            The ones you spent scrolling, switching apps, arguing, and forgetting — before you ever pressed play.
-          </p>
-          <span className="inline-block text-sm font-medium text-white/75 bg-white/10 border border-white/20 rounded-full px-5 py-2">
-            Your couch deserves better
-          </span>
+
+          {/* Centre text */}
+          <div className="flex-1 min-w-0 px-4 sm:px-6 py-14 text-center">
+            <div className="inline-block text-[10px] uppercase tracking-widest font-semibold text-white/60 bg-white/10 border border-white/20 rounded-full px-3 py-1 mb-5">
+              About us
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight tracking-tight mb-4">
+              We built the app for<br />
+              <em className="italic opacity-80">the other 45 minutes.</em>
+            </h1>
+            <p className="text-base text-white/70 leading-relaxed mb-6 max-w-xs mx-auto sm:max-w-none">
+              The ones you spent scrolling, switching apps, arguing, and forgetting — before you ever pressed play.
+            </p>
+            <span className="inline-block text-sm font-medium text-white/75 bg-white/10 border border-white/20 rounded-full px-5 py-2">
+              Your couch deserves better
+            </span>
+          </div>
+
+          {/* Couchie — right, hidden on mobile */}
+          <div className="hidden sm:block flex-shrink-0 w-64 md:w-72 lg:w-80 self-end">
+            <Image
+              src="/couchie.png"
+              alt=""
+              width={320}
+              height={320}
+              className="object-contain object-bottom w-full"
+            />
+          </div>
+
         </div>
       </div>
 
