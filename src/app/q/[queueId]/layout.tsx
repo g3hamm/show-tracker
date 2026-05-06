@@ -26,7 +26,7 @@ export default async function QueueLayout({
 
   const shareHref = queue?.share_code
     ? `/recommend?q=${queue.share_code}`
-    : "/recommend";
+    : undefined;
 
   return (
     <main className="min-h-screen">
