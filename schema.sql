@@ -46,9 +46,13 @@ CREATE TABLE IF NOT EXISTS family_subscriptions (
   provider_id   INTEGER NOT NULL,
   provider_name TEXT NOT NULL,
   logo_path     TEXT NOT NULL,
+  monthly_cost  REAL,
   created_at    TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY (family_id, provider_id)
 );
+
+-- Migration for existing installs (safe to re-run — SQLite ignores duplicate column errors via workaround):
+-- ALTER TABLE family_subscriptions ADD COLUMN monthly_cost REAL;
 
 -- ---------- queues (groups + solo) ----------
 CREATE TABLE IF NOT EXISTS queues (
