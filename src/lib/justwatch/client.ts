@@ -1,6 +1,8 @@
 const GRAPHQL_URL = "https://apis.justwatch.com/graphql";
 const COUNTRY = (process.env.WATCH_REGION ?? "US") as string;
 
+// fullPath lives inside content(country, language), not directly on the node.
+// Filter uses array-of-objects format: [{ externalId, provider }].
 const QUERY = `
   query GetSuggestedTitles(
     $country: Country!
@@ -11,8 +13,18 @@ const QUERY = `
     popularTitles(country: $country, first: $first, filter: $filter) {
       edges {
         node {
-          ... on Movie { fullPath }
-          ... on Show  { fullPath }
+          ... on Movie {
+            content(country: $country, language: $language) {
+              title
+              fullPath
+            }
+          }
+          ... on Show {
+            content(country: $country, language: $language) {
+              title
+              fullPath
+            }
+          }
         }
       }
     }
@@ -29,6 +41,7 @@ export async function fetchJustWatchUrl(
       headers: {
         "Content-Type": "application/json",
         "User-Agent": "Mozilla/5.0",
+        "App-Version": "3.7.7-web",
       },
       body: JSON.stringify({
         operationName: "GetSuggestedTitles",
@@ -38,7 +51,7 @@ export async function fetchJustWatchUrl(
           language: "en",
           first: 1,
           filter: {
-            externalIds: { tmdbId },
+            externalIds: [{ externalId: String(tmdbId), provider: "TMDB" }],
             objectTypes: [mediaType === "movie" ? "MOVIE" : "SHOW"],
           },
         },
@@ -46,14 +59,29 @@ export async function fetchJustWatchUrl(
       signal: AbortSignal.timeout(5000),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error(`[JustWatch] HTTP ${res.status} ${res.statusText}`);
+      return null;
+    }
 
     const json = await res.json();
-    const fullPath: string | undefined =
-      json?.data?.popularTitles?.edges?.[0]?.node?.fullPath;
 
-    return fullPath ? `https://www.justwatch.com${fullPath}` : null;
-  } catch {
+    if (json.errors) {
+      console.error("[JustWatch] GraphQL errors:", JSON.stringify(json.errors));
+      return null;
+    }
+
+    const node = json?.data?.popularTitles?.edges?.[0]?.node;
+    const fullPath: string | undefined = node?.content?.fullPath;
+
+    if (!fullPath) {
+      console.error(`[JustWatch] No fullPath for tmdbId=${tmdbId} type=${mediaType}. Response:`, JSON.stringify(json?.data));
+      return null;
+    }
+
+    return `https://www.justwatch.com${fullPath}`;
+  } catch (err) {
+    console.error("[JustWatch] Fetch error:", err);
     return null;
   }
 }
