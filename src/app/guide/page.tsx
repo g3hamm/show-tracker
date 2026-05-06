@@ -28,7 +28,7 @@ export default function GuidePage() {
             Chillflix for You
           </h1>
           <p className="text-[color:var(--muted)] text-lg max-w-xl mx-auto leading-relaxed">
-            Keep track of everything you want to watch — solo or with your household — in one simple place.
+            End the strife of searching every platform separately to find something to watch, losing track of preferences in the process. With Chillflix, lose the stress and gain convenience, personalization, and cost-savings — all in one place.
           </p>
         </section>
 
@@ -36,32 +36,19 @@ export default function GuidePage() {
         <section>
           <div className="grid sm:grid-cols-3 gap-6">
             <BenefitCard
-              icon={
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clipRule="evenodd" />
-                </svg>
-              }
+              number="1"
               title="Convenience"
-              description="One list instead of ten. No more forgetting what you bookmarked across Netflix, Hulu, and everywhere else."
+              description="All your streaming options tracked in one place."
             />
             <BenefitCard
-              icon={
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
-                  <path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" />
-                </svg>
-              }
+              number="2"
               title="Personalization"
-              description="Your taste, tracked. See what genres you love and get smarter recommendations over time."
+              description="Tailored profiles and ratings for your household."
             />
             <BenefitCard
-              icon={
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
-                  <path d="M10.75 10.818v2.614A3.13 3.13 0 0 0 11.888 13c.482-.315.612-.648.612-.875 0-.227-.13-.56-.612-.875a3.13 3.13 0 0 0-1.138-.432ZM8.33 8.62c.053.055.115.11.184.164.208.16.46.284.736.363V6.603a2.45 2.45 0 0 0-.35.13c-.14.065-.27.143-.386.233-.377.292-.514.627-.514.909 0 .184.058.39.33.576Z" />
-                  <path fillRule="evenodd" d="M9.99 1.875a8 8 0 1 0 0 16 8 8 0 0 0 0-16ZM8.25 6.5a.75.75 0 0 1 1.5 0v.191c.897.175 1.68.604 2.196 1.207a.75.75 0 1 1-1.144.972c-.236-.277-.63-.492-1.052-.612v2.34c.454.132.903.306 1.3.573 1.002.678 1.4 1.696 1.4 2.577 0 .881-.398 1.9-1.4 2.578a4.558 4.558 0 0 1-1.3.573V16a.75.75 0 0 1-1.5 0v-.21a4.856 4.856 0 0 1-2.068-1.017.75.75 0 0 1 .98-1.14c.422.363.99.603 1.588.67V12.02a6.165 6.165 0 0 1-1.186-.399C6.716 11.114 6 10.152 6 9c0-1.151.716-2.113 1.745-2.62.327-.157.69-.27 1.005-.33V6.5Z" clipRule="evenodd" />
-                </svg>
-              }
+              number="3"
               title="Cost-savings"
-              description="Know what's on your services before adding new ones. Track subscriptions and get the most out of what you already pay for."
+              description="Analytics and ROI insights across every subscription."
             />
           </div>
         </section>
@@ -70,86 +57,64 @@ export default function GuidePage() {
         <section className="space-y-6">
           <SectionHeading label="Getting Started" title="Up and running in minutes" />
 
-          <div className="space-y-4">
-            <Step
-              number="01"
-              title="Set up your profile"
-              description="Create your account and tell Chillflix which streaming services you subscribe to. This helps the app highlight shows you can actually watch right now."
-            />
-            <Step
-              number="02"
-              title="Start tracking shows"
-              description="Search for any show or movie and add it to your queue. Mark items as watched as you go, and rate them to help sharpen your recommendations."
-            />
-          </div>
+          <Step number="01" title="Set Up Your Profile" subtitle="Takes 2 min">
+            <Bullet>
+              In the <Chip>Intro Page</Chip>, name your <Strong>&ldquo;household&rdquo;</Strong>{" "}
+              — e.g. <em>Hamm Family</em>. Add members (e.g. Mom, Dad, Billy) or combos
+              (e.g. &ldquo;Mom &amp; Dad&rdquo;, &ldquo;Billy &amp; Friends&rdquo;).
+            </Bullet>
+            <Bullet>
+              Go to <Chip>Settings</Chip> and select <ChipOutline>My Subscriptions</ChipOutline>.
+              Not sure what you&rsquo;re paying for? Try the optional{" "}
+              <Strong>Rocketmoney import</Strong>.
+            </Bullet>
+            <Note>Don&rsquo;t worry — you can change any of this later!</Note>
+          </Step>
+
+          <Step number="02" title="Start Tracking" subtitle="Any time">
+            <Bullet>
+              Go to <Chip>Add Shows</Chip> to mark a series you&rsquo;re actively watching
+              or have finished. Updates your queue instantly.
+            </Bullet>
+            <Bullet>
+              Within a show, <Strong>rate the series</Strong> on a 1–5 scale to build a record
+              of your preferences over time.
+            </Bullet>
+          </Step>
         </section>
 
         {/* Features */}
         <section className="space-y-6">
           <SectionHeading label="Features" title="Everything you need" />
 
-          <div className="space-y-4">
-            <FeatureCard
-              icon={
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                  <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clipRule="evenodd" />
-                </svg>
-              }
-              title="Discover"
-              description="Browse curated lists — top-rated, trending, or filtered by genre — to find your next binge. Chillflix highlights titles available on your services."
-            />
-            <FeatureCard
-              icon={
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                  <path d="M12.232 4.232a2.5 2.5 0 0 1 3.536 3.536l-1.225 1.224a.75.75 0 0 0 1.061 1.06l1.224-1.224a4 4 0 0 0-5.656-5.656l-3 3a4 4 0 0 0 .225 5.865.75.75 0 0 0 .977-1.138 2.5 2.5 0 0 1-.142-3.667l3-3Z" />
-                  <path d="M11.603 7.963a.75.75 0 0 0-.977 1.138 2.5 2.5 0 0 1 .142 3.667l-3 3a2.5 2.5 0 0 1-3.536-3.536l1.225-1.224a.75.75 0 0 0-1.061-1.06l-1.224 1.224a4 4 0 1 0 5.656 5.656l3-3a4 4 0 0 0-.225-5.865Z" />
-                </svg>
-              }
-              title="Recommendations"
-              description="Share a personal recommendation link with anyone — even people who don't have a Chillflix account. They can submit shows directly to your queue."
-            />
-            <FeatureCard
-              icon={
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                  <path d="M15.5 2A1.5 1.5 0 0 0 14 3.5v13a1.5 1.5 0 0 0 3 0v-13A1.5 1.5 0 0 0 15.5 2ZM9.5 6A1.5 1.5 0 0 0 8 7.5v9a1.5 1.5 0 0 0 3 0v-9A1.5 1.5 0 0 0 9.5 6ZM3.5 10A1.5 1.5 0 0 0 2 11.5v5a1.5 1.5 0 0 0 3 0v-5A1.5 1.5 0 0 0 3.5 10Z" />
-                </svg>
-              }
-              title="Analytics"
-              description="See your watching patterns at a glance — genre breakdowns, platform usage, and more. Useful for spotting which subscriptions are actually earning their keep."
-            />
-            <FeatureCard
-              icon={
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                  <path d="M10 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM1.49 15.326a.78.78 0 0 1-.358-.442 3 3 0 0 1 4.308-3.516 6.484 6.484 0 0 0-1.905 3.959c-.023.222-.014.442.025.654a4.97 4.97 0 0 1-2.07-.655ZM16.44 15.98a4.97 4.97 0 0 0 2.07-.654.78.78 0 0 0 .357-.442 3 3 0 0 0-4.308-3.517 6.484 6.484 0 0 1 1.907 3.96 2.32 2.32 0 0 1-.026.654ZM18 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM5.304 16.19a.844.844 0 0 1-.277-.71 5 5 0 0 1 9.947 0 .843.843 0 0 1-.277.71A6.975 6.975 0 0 1 10 18a6.974 6.974 0 0 1-4.696-1.81Z" />
-                </svg>
-              }
-              title="Shared Queues"
-              description="Create a group queue with your household and manage a shared watchlist together. Everyone can add shows and mark things as watched."
-            />
-          </div>
-        </section>
+          <Feature badge="Discover" title="Find Something to Watch">
+            <Bullet>
+              Select the <Chip>Discover</Chip> tab and describe your mood —
+              &ldquo;something spooky from the 80s&rdquo; or &ldquo;a feel-good
+              comedy.&rdquo; Draws from <Strong>all platforms</Strong>, not one
+              streamer&rsquo;s biased categories.
+            </Bullet>
+          </Feature>
 
-        {/* Tips */}
-        <section className="space-y-6">
-          <SectionHeading label="Tips" title="Get the most out of Chillflix" />
-          <div className="grid sm:grid-cols-2 gap-4">
-            <TipCard
-              title="Rate as you go"
-              description="Giving shows a thumbs up or down trains your personal taste profile for better Discover results."
-            />
-            <TipCard
-              title="Use the solo queue"
-              description="Add guilty pleasures or shows your household wouldn't enjoy to your solo queue — it stays private."
-            />
-            <TipCard
-              title="Refresh periodically"
-              description='Use "Refresh shows" in the menu to pull the latest streaming availability so you always know where to watch.'
-            />
-            <TipCard
-              title="Keep subscriptions current"
-              description="Update My Subscriptions whenever you add or drop a service so Chillflix can highlight the right shows."
-            />
-          </div>
+          <Feature badge="Tips" title="Get Recommendations">
+            <Bullet>
+              In <Chip>Settings</Chip>, find your <ChipOutline>Recommendations Link</ChipOutline>{" "}
+              and share it with trusted friends and family. Their picks land in your queue
+              automatically.
+            </Bullet>
+            <Bullet>
+              <Strong>Accept or decline</Strong> suggestions as they arrive — keeping your
+              queue curated and personal.
+            </Bullet>
+          </Feature>
+
+          <Feature badge="Analytics" title="View Analytics">
+            <Bullet>
+              Select the <BarChartChip /> next to <Chip>Discover</Chip> to open the analytics
+              dashboard — a family-wide view of every queue. Track shows added, platform
+              usage, satisfaction ratings per service, and ROI, all updated in real time.
+            </Bullet>
+          </Feature>
         </section>
 
         <div className="text-center pt-4">
@@ -175,18 +140,18 @@ function SectionHeading({ label, title }: { label: string; title: string }) {
 }
 
 function BenefitCard({
-  icon,
+  number,
   title,
   description,
 }: {
-  icon: React.ReactNode;
+  number: string;
   title: string;
   description: string;
 }) {
   return (
-    <div className="bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl p-5 space-y-3">
-      <div className="w-10 h-10 rounded-lg bg-[#C01900]/10 flex items-center justify-center text-[#C01900]">
-        {icon}
+    <div className="bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl p-5 space-y-3 text-center">
+      <div className="w-10 h-10 mx-auto rounded-full bg-[#C01900] flex items-center justify-center">
+        <span className="text-white font-bold">{number}</span>
       </div>
       <h3 className="font-semibold text-[color:var(--foreground)]">{title}</h3>
       <p className="text-sm text-[color:var(--muted)] leading-relaxed">{description}</p>
@@ -197,55 +162,93 @@ function BenefitCard({
 function Step({
   number,
   title,
-  description,
+  subtitle,
+  children,
 }: {
   number: string;
   title: string;
-  description: string;
+  subtitle: string;
+  children: React.ReactNode;
 }) {
   return (
-    <div className="flex gap-5 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl p-5">
-      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#C01900] flex items-center justify-center">
-        <span className="text-white text-xs font-bold">{number}</span>
+    <div className="bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl p-5 space-y-4">
+      <div className="flex items-center gap-3 pb-3 border-b border-[color:var(--border)]">
+        <span className="bg-[#C01900] text-white text-[10px] font-bold uppercase tracking-wider rounded px-2 py-1">
+          Step {number}
+        </span>
+        <h3 className="font-semibold text-[color:var(--foreground)] flex-1">{title}</h3>
+        <span className="text-xs text-[color:var(--muted)] italic">{subtitle}</span>
       </div>
-      <div className="space-y-1 min-w-0">
-        <h3 className="font-semibold text-[color:var(--foreground)]">{title}</h3>
-        <p className="text-sm text-[color:var(--muted)] leading-relaxed">{description}</p>
-      </div>
+      <div className="space-y-3">{children}</div>
     </div>
   );
 }
 
-function FeatureCard({
-  icon,
+function Feature({
+  badge,
   title,
-  description,
+  children,
 }: {
-  icon: React.ReactNode;
+  badge: string;
   title: string;
-  description: string;
+  children: React.ReactNode;
 }) {
   return (
-    <div className="flex gap-4 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl p-5">
-      <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[color:var(--surface-elevated)] flex items-center justify-center text-[color:var(--muted)]">
-        {icon}
+    <div className="bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl p-5 space-y-4">
+      <div className="flex items-center gap-3 pb-3 border-b border-[color:var(--border)]">
+        <span className="bg-[color:var(--surface-elevated)] text-[color:var(--foreground)] text-[10px] font-bold uppercase tracking-wider rounded px-2 py-1 border border-[color:var(--border)]">
+          {badge}
+        </span>
+        <h3 className="font-semibold text-[color:var(--foreground)] flex-1">{title}</h3>
       </div>
-      <div className="space-y-1 min-w-0">
-        <h3 className="font-semibold text-[color:var(--foreground)] text-sm">{title}</h3>
-        <p className="text-sm text-[color:var(--muted)] leading-relaxed">{description}</p>
-      </div>
+      <div className="space-y-3">{children}</div>
     </div>
   );
 }
 
-function TipCard({ title, description }: { title: string; description: string }) {
+function Bullet({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl p-4 space-y-1">
-      <div className="flex items-center gap-2">
-        <div className="w-1.5 h-1.5 rounded-full bg-[#C01900]" />
-        <h3 className="font-semibold text-[color:var(--foreground)] text-sm">{title}</h3>
-      </div>
-      <p className="text-sm text-[color:var(--muted)] leading-relaxed pl-3.5">{description}</p>
+    <div className="flex gap-3 items-start">
+      <div className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-[#C01900] mt-[0.55rem]" />
+      <p className="text-sm text-[color:var(--muted)] leading-relaxed">{children}</p>
     </div>
+  );
+}
+
+function Note({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="bg-[#C01900]/10 border-l-2 border-[#C01900] rounded-r px-3 py-2">
+      <p className="text-sm text-[color:var(--foreground)]">{children}</p>
+    </div>
+  );
+}
+
+function Chip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-block bg-[#C01900] text-white text-[11px] font-bold rounded px-1.5 py-0.5 align-middle whitespace-nowrap">
+      {children}
+    </span>
+  );
+}
+
+function ChipOutline({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-block bg-[#C01900]/15 border border-[#C01900]/50 text-[color:var(--foreground)] text-[11px] font-bold rounded px-1.5 py-0.5 align-middle whitespace-nowrap">
+      {children}
+    </span>
+  );
+}
+
+function Strong({ children }: { children: React.ReactNode }) {
+  return <strong className="text-[color:var(--foreground)] font-semibold">{children}</strong>;
+}
+
+function BarChartChip() {
+  return (
+    <span className="inline-flex items-end gap-[2px] bg-[#C01900] rounded px-1.5 py-1 align-middle h-[18px]">
+      <span className="block w-[3px] h-[5px] bg-white/60 rounded-sm" />
+      <span className="block w-[3px] h-[8px] bg-white/80 rounded-sm" />
+      <span className="block w-[3px] h-[11px] bg-white rounded-sm" />
+    </span>
   );
 }
