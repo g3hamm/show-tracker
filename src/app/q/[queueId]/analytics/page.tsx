@@ -57,17 +57,14 @@ function slicePath(startDeg: number, endDeg: number): string {
   return `M ${PIE_CX} ${PIE_CY} L ${s.x} ${s.y} A ${PIE_R} ${PIE_R} 0 ${large} 1 ${e.x} ${e.y} Z`;
 }
 
-const TOP_N = 8;
+function sortedSlices(counts: Record<string, number>): { label: string; value: number }[] {
+  return Object.entries(counts)
+    .sort(([, a], [, b]) => b - a)
+    .map(([label, value]) => ({ label, value }));
+}
 
-function topWithOther(counts: Record<string, number>): { label: string; value: number }[] {
-  const sorted = Object.entries(counts).sort(([, a], [, b]) => b - a);
-  const top = sorted.slice(0, TOP_N);
-  const rest = sorted.slice(TOP_N);
-  const result = top.map(([label, value]) => ({ label, value }));
-  if (rest.length > 0) {
-    result.push({ label: "Other", value: rest.reduce((s, [, v]) => s + v, 0) });
-  }
-  return result;
+function pct(value: number, total: number): string {
+  return `${Math.round((value / total) * 100)}%`;
 }
 
 function PieChart({ slices }: { slices: { label: string; value: number }[] }) {
@@ -331,51 +328,59 @@ export default async function AnalyticsPage({
       {/* Pie charts — Genres & Platforms */}
       {(Object.keys(genre_counts).length > 0 || Object.keys(platform_counts).length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-          {Object.keys(genre_counts).length > 0 && (
-            <section>
-              <h2 className="text-lg font-semibold mb-4">Genres</h2>
-              <div className="bg-[color:var(--surface)] rounded-xl p-4">
-                <div className="flex gap-4 items-start">
-                  <PieChart slices={topWithOther(genre_counts)} />
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 content-start pt-1">
-                    {topWithOther(genre_counts).map((s, i) => (
-                      <div key={s.label} className="flex items-center gap-1.5 text-xs min-w-0">
-                        <span
-                          className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                          style={{ background: PIE_PALETTE[i % PIE_PALETTE.length] }}
-                        />
-                        <span className="text-[color:var(--muted)] truncate">{s.label}</span>
-                        <span className="font-medium tabular-nums">{s.value}</span>
-                      </div>
-                    ))}
+          {Object.keys(genre_counts).length > 0 && (() => {
+            const slices = sortedSlices(genre_counts);
+            const total = slices.reduce((s, d) => s + d.value, 0);
+            return (
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Genres</h2>
+                <div className="bg-[color:var(--surface)] rounded-xl p-4">
+                  <div className="flex gap-4 items-start">
+                    <PieChart slices={slices} />
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 content-start pt-1">
+                      {slices.map((s, i) => (
+                        <div key={s.label} className="flex items-center gap-1.5 text-xs min-w-0">
+                          <span
+                            className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                            style={{ background: PIE_PALETTE[i % PIE_PALETTE.length] }}
+                          />
+                          <span className="text-[color:var(--muted)] truncate">{s.label}</span>
+                          <span className="font-medium tabular-nums">{pct(s.value, total)}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </section>
-          )}
+              </section>
+            );
+          })()}
 
-          {Object.keys(platform_counts).length > 0 && (
-            <section>
-              <h2 className="text-lg font-semibold mb-4">Platforms</h2>
-              <div className="bg-[color:var(--surface)] rounded-xl p-4">
-                <div className="flex gap-4 items-start">
-                  <PieChart slices={topWithOther(platform_counts)} />
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 content-start pt-1">
-                    {topWithOther(platform_counts).map((s, i) => (
-                      <div key={s.label} className="flex items-center gap-1.5 text-xs min-w-0">
-                        <span
-                          className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                          style={{ background: PIE_PALETTE[i % PIE_PALETTE.length] }}
-                        />
-                        <span className="text-[color:var(--muted)] truncate">{s.label}</span>
-                        <span className="font-medium tabular-nums">{s.value}</span>
-                      </div>
-                    ))}
+          {Object.keys(platform_counts).length > 0 && (() => {
+            const slices = sortedSlices(platform_counts);
+            const total = slices.reduce((s, d) => s + d.value, 0);
+            return (
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Platforms</h2>
+                <div className="bg-[color:var(--surface)] rounded-xl p-4">
+                  <div className="flex gap-4 items-start">
+                    <PieChart slices={slices} />
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 content-start pt-1">
+                      {slices.map((s, i) => (
+                        <div key={s.label} className="flex items-center gap-1.5 text-xs min-w-0">
+                          <span
+                            className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                            style={{ background: PIE_PALETTE[i % PIE_PALETTE.length] }}
+                          />
+                          <span className="text-[color:var(--muted)] truncate">{s.label}</span>
+                          <span className="font-medium tabular-nums">{pct(s.value, total)}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </section>
-          )}
+              </section>
+            );
+          })()}
         </div>
       )}
 
