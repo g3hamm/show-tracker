@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { tmdbLogo } from "@/lib/tmdb/client";
 import { getProviderSearchUrl } from "@/lib/providers/urls";
