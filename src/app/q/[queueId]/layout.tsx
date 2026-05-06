@@ -48,6 +48,12 @@ export default async function QueueLayout({
               >
                 + Add show
               </Link>
+              <Link
+                href={`/q/${queueId}/discover`}
+                className="px-4 py-2 rounded bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
+              >
+                Discover
+              </Link>
               <RefreshButton />
               <SettingsMenu shareHref={shareHref} />
             </div>
