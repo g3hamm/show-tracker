@@ -30,6 +30,26 @@ export default async function QueueDashboardPage({ params }: PageProps) {
   return (
     <div className="py-6 sm:py-8">
       <Section
+        title="All tracked shows"
+        subtitle={`${allShows.length} show${allShows.length === 1 ? "" : "s"}.`}
+        fullWidth
+      >
+        {allShows.length === 0 ? (
+          <div className="max-w-7xl mx-auto px-6 sm:px-8">
+            <p className="text-sm text-[color:var(--muted)] italic">
+              No shows yet.{" "}
+              <Link href={`/q/${queueId}/search`} className="underline hover:text-[color:var(--accent)]">
+                Add one
+              </Link>
+              .
+            </p>
+          </div>
+        ) : (
+          <ShowGrid shows={allShows} />
+        )}
+      </Section>
+
+      <Section
         title="New this week"
         subtitle="Episodes that aired in the last 7 days."
         fullWidth
@@ -71,26 +91,6 @@ export default async function QueueDashboardPage({ params }: PageProps) {
               <RecommendationCard key={rec.id} rec={rec} queueId={queueId} />
             ))}
           </div>
-        )}
-      </Section>
-
-      <Section
-        title="All tracked shows"
-        subtitle={`${allShows.length} show${allShows.length === 1 ? "" : "s"}.`}
-        fullWidth
-      >
-        {allShows.length === 0 ? (
-          <div className="max-w-7xl mx-auto px-6 sm:px-8">
-            <p className="text-sm text-[color:var(--muted)] italic">
-              No shows yet.{" "}
-              <Link href={`/q/${queueId}/search`} className="underline hover:text-[color:var(--accent)]">
-                Add one
-              </Link>
-              .
-            </p>
-          </div>
-        ) : (
-          <ShowGrid shows={allShows} />
         )}
       </Section>
 
