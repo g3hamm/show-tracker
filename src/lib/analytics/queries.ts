@@ -14,6 +14,11 @@ export interface ProviderAnalytics {
   days_since_last_watch: number | null;
 }
 
+export interface ShowPair {
+  genres: string[];
+  platforms: string[];
+}
+
 export interface AnalyticsData {
   providers: ProviderAnalytics[];
   totals: {
@@ -28,6 +33,7 @@ export interface AnalyticsData {
   ratings: Record<number, number>;
   genre_counts: Record<string, number>;
   platform_counts: Record<string, number>;
+  show_pairs: ShowPair[];
 }
 
 export async function getAnalyticsData(userId: string): Promise<AnalyticsData | null> {
@@ -104,6 +110,7 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
   const ratings: Record<number, number> = {};
   const genre_counts: Record<string, number> = {};
   const platform_counts: Record<string, number> = {};
+  const show_pairs: ShowPair[] = [];
 
   for (const row of showsResult.rows) {
     all++;
@@ -140,6 +147,7 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
       }
     }
 
+    const showPlatforms: string[] = [];
     if (row.watch_providers) {
       let rawProviders: StoredWatchProvider[] = [];
       try {
@@ -153,6 +161,7 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
         if (stat) {
           // Only count platforms the family actually subscribes to
           platform_counts[p.provider_name] = (platform_counts[p.provider_name] ?? 0) + 1;
+          showPlatforms.push(p.provider_name);
           if (isArchived) {
             stat.watched_count++;
             if (row.rating !== null) {
@@ -168,6 +177,16 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
           }
         }
       }
+    }
+
+    const showGenres: string[] = [];
+    if (row.genres) {
+      try {
+        showGenres.push(...(JSON.parse(row.genres as string) as string[]));
+      } catch { /* skip */ }
+    }
+    if (showGenres.length > 0 || showPlatforms.length > 0) {
+      show_pairs.push({ genres: showGenres, platforms: showPlatforms });
     }
   }
 
@@ -198,5 +217,6 @@ export async function getAnalyticsData(userId: string): Promise<AnalyticsData | 
     ratings,
     genre_counts,
     platform_counts,
+    show_pairs,
   };
 }
