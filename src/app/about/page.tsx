@@ -79,13 +79,15 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[color:var(--background)]">
 
-      {/* Header */}
+      {/* Header — full-width so logo aligns above Cuppie */}
       <header className="bg-[#C01900] shadow-lg">
-        <div className="max-w-4xl mx-auto px-6 sm:px-8 py-4 flex items-center justify-between">
-          <Logo />
+        <div className="px-6 sm:px-8 py-4 flex items-center justify-between">
+          <div className="sm:pl-6 md:pl-10 lg:pl-16">
+            <Logo />
+          </div>
           <Link
             href="/"
-            className="flex items-center gap-1.5 text-sm text-white/80 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-sm text-white/80 hover:text-white transition-colors sm:pr-6 md:pr-10 lg:pr-16"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
               <path fillRule="evenodd" d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z" clipRule="evenodd" />
