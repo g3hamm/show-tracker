@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getAnalyticsData } from "@/lib/analytics/queries";
 import { tmdbLogo } from "@/lib/tmdb/client";
 import { ProviderCostInput } from "@/components/analytics/ProviderCostInput";
+import { CrossFilterCharts } from "@/components/analytics/CrossFilterCharts";
 
 export const dynamic = "force-dynamic";
 
@@ -27,78 +28,6 @@ const SAT_CONFIG = {
   unknown: { face: "🤔", label: "Not enough data",   ring: "ring-[color:var(--border)]", text: "text-[color:var(--muted)]", bar: "bg-[color:var(--border)]" },
 };
 
-// ── Pie chart helpers ─────────────────────────────────────────────────────────
-
-const PIE_PALETTE = [
-  "#C01900", "#e85d04", "#f48c06", "#faa307",
-  "#4cc9f0", "#4361ee", "#7209b7", "#06d6a0",
-  "#118ab2", "#ef476f",
-];
-const PIE_SIZE = 148;
-const PIE_CX = PIE_SIZE / 2;
-const PIE_CY = PIE_SIZE / 2;
-const PIE_R = PIE_SIZE / 2 - 6;
-
-function polarXY(angleDeg: number) {
-  const rad = ((angleDeg - 90) * Math.PI) / 180;
-  return { x: PIE_CX + PIE_R * Math.cos(rad), y: PIE_CY + PIE_R * Math.sin(rad) };
-}
-
-function slicePath(startDeg: number, endDeg: number): string {
-  const span = endDeg - startDeg;
-  if (span >= 360) {
-    // Full circle — draw as two arcs to avoid degenerate path
-    const top = { x: PIE_CX, y: PIE_CY - PIE_R };
-    return `M ${top.x} ${top.y} A ${PIE_R} ${PIE_R} 0 1 1 ${PIE_CX - 0.001} ${PIE_CY - PIE_R} Z`;
-  }
-  const s = polarXY(startDeg);
-  const e = polarXY(endDeg);
-  const large = span > 180 ? 1 : 0;
-  return `M ${PIE_CX} ${PIE_CY} L ${s.x} ${s.y} A ${PIE_R} ${PIE_R} 0 ${large} 1 ${e.x} ${e.y} Z`;
-}
-
-function sortedSlices(counts: Record<string, number>): { label: string; value: number }[] {
-  return Object.entries(counts)
-    .sort(([, a], [, b]) => b - a)
-    .map(([label, value]) => ({ label, value }));
-}
-
-function pct(value: number, total: number): string {
-  return `${Math.round((value / total) * 100)}%`;
-}
-
-function PieChart({ slices }: { slices: { label: string; value: number }[] }) {
-  const total = slices.reduce((s, d) => s + d.value, 0);
-  if (total === 0) return null;
-  let angle = 0;
-  return (
-    <svg
-      width={PIE_SIZE}
-      height={PIE_SIZE}
-      viewBox={`0 0 ${PIE_SIZE} ${PIE_SIZE}`}
-      className="flex-shrink-0"
-    >
-      {slices.map((slice, i) => {
-        const sweep = (slice.value / total) * 360;
-        const d = slicePath(angle, angle + sweep);
-        angle += sweep;
-        return (
-          <path
-            key={slice.label}
-            d={d}
-            fill={PIE_PALETTE[i % PIE_PALETTE.length]}
-            stroke="var(--background)"
-            strokeWidth={1.5}
-          >
-            <title>{slice.label}: {slice.value}</title>
-          </path>
-        );
-      })}
-    </svg>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 const STATUS_ORDER = ["Returning Series", "In Production", "Planned", "Ended", "Canceled", "Unknown"];
 
@@ -124,7 +53,7 @@ export default async function AnalyticsPage({
   if (!data) redirect("/family/setup");
 
   // data is non-null after the redirect above; TypeScript doesn't narrow past redirect().
-  const { providers, totals, status_counts, ratings, genre_counts, platform_counts } = data!;
+  const { providers, totals, status_counts, ratings, genre_counts, platform_counts, show_pairs } = data!;
 
   const totalMonthly = providers.reduce((sum: number, p) => sum + (p.monthly_cost ?? 0), 0);
 
@@ -325,63 +254,13 @@ export default async function AnalyticsPage({
         )}
       </section>
 
-      {/* Pie charts — Genres & Platforms */}
+      {/* Pie charts — Genres & Platforms (cross-filterable) */}
       {(Object.keys(genre_counts).length > 0 || Object.keys(platform_counts).length > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-          {Object.keys(genre_counts).length > 0 && (() => {
-            const slices = sortedSlices(genre_counts);
-            const total = slices.reduce((s, d) => s + d.value, 0);
-            return (
-              <section>
-                <h2 className="text-lg font-semibold mb-4">Genres</h2>
-                <div className="bg-[color:var(--surface)] rounded-xl p-4">
-                  <div className="flex gap-4 items-start">
-                    <PieChart slices={slices} />
-                    <div className="flex flex-wrap gap-x-4 gap-y-2 content-start pt-1">
-                      {slices.map((s, i) => (
-                        <div key={s.label} className="flex items-center gap-1.5 text-xs min-w-0">
-                          <span
-                            className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                            style={{ background: PIE_PALETTE[i % PIE_PALETTE.length] }}
-                          />
-                          <span className="text-[color:var(--muted)] truncate">{s.label}</span>
-                          <span className="font-medium tabular-nums">{pct(s.value, total)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </section>
-            );
-          })()}
-
-          {Object.keys(platform_counts).length > 0 && (() => {
-            const slices = sortedSlices(platform_counts);
-            const total = slices.reduce((s, d) => s + d.value, 0);
-            return (
-              <section>
-                <h2 className="text-lg font-semibold mb-4">Platforms</h2>
-                <div className="bg-[color:var(--surface)] rounded-xl p-4">
-                  <div className="flex gap-4 items-start">
-                    <PieChart slices={slices} />
-                    <div className="flex flex-wrap gap-x-4 gap-y-2 content-start pt-1">
-                      {slices.map((s, i) => (
-                        <div key={s.label} className="flex items-center gap-1.5 text-xs min-w-0">
-                          <span
-                            className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                            style={{ background: PIE_PALETTE[i % PIE_PALETTE.length] }}
-                          />
-                          <span className="text-[color:var(--muted)] truncate">{s.label}</span>
-                          <span className="font-medium tabular-nums">{pct(s.value, total)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </section>
-            );
-          })()}
-        </div>
+        <CrossFilterCharts
+          genreCounts={genre_counts}
+          platformCounts={platform_counts}
+          showPairs={show_pairs}
+        />
       )}
 
       {/* Lower two-column grid */}
