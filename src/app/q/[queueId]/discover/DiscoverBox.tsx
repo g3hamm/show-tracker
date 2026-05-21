@@ -13,6 +13,7 @@ interface Suggestion {
   date: string | null;
   overview: string | null;
   why: string;
+  onSubscribedService: boolean;
 }
 
 interface DiscoverBoxProps {
@@ -24,7 +25,9 @@ export function DiscoverBox({ queueId, subscriptions }: DiscoverBoxProps) {
   const [mood, setMood] = useState("");
   const [onlyMine, setOnlyMine] = useState(subscriptions.length > 0);
   const [results, setResults] = useState<Suggestion[]>([]);
+  const [someUnavailable, setSomeUnavailable] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState<"thinking" | "checking">("thinking");
   const [error, setError] = useState<string | null>(null);
   const [addedIds, setAddedIds] = useState<Set<number>>(new Set());
   const [adding, startAdd] = useTransition();
@@ -35,8 +38,13 @@ export function DiscoverBox({ queueId, subscriptions }: DiscoverBoxProps) {
 
     setError(null);
     setResults([]);
+    setSomeUnavailable(false);
     setLoading(true);
+    setLoadingPhase("thinking");
     setAddedIds(new Set());
+
+    // Switch loading message after a moment to reflect the availability-check phase
+    const phaseTimer = setTimeout(() => setLoadingPhase("checking"), 2500);
 
     try {
       const res = await fetch("/api/suggest", {
@@ -57,12 +65,14 @@ export function DiscoverBox({ queueId, subscriptions }: DiscoverBoxProps) {
 
       if (data.results?.length > 0) {
         setResults(data.results);
+        setSomeUnavailable(data.someUnavailable === true);
       } else {
         setError("No matches found. Try describing something different.");
       }
     } catch {
       setError("Network error. Please try again.");
     } finally {
+      clearTimeout(phaseTimer);
       setLoading(false);
     }
   }
@@ -150,18 +160,30 @@ export function DiscoverBox({ queueId, subscriptions }: DiscoverBoxProps) {
       {loading && (
         <div className="mt-8 flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-[color:var(--accent)] border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-[color:var(--muted)]">Finding the perfect match...</p>
+          <p className="text-sm text-[color:var(--muted)]">
+            {loadingPhase === "thinking"
+              ? "Finding the best matches for your mood…"
+              : "Checking what's available on your services…"}
+          </p>
         </div>
       )}
 
       {results.length > 0 && (
         <div className="mt-6 flex flex-col gap-3">
-          <h2 className="text-sm font-semibold text-[color:var(--muted)] uppercase tracking-wider">
-            We think you&apos;ll like
-          </h2>
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-sm font-semibold text-[color:var(--muted)] uppercase tracking-wider">
+              We think you&apos;ll like
+            </h2>
+            {someUnavailable && onlyMine && (
+              <span className="text-xs text-[color:var(--muted)] italic">
+                Some picks aren&apos;t on your services
+              </span>
+            )}
+          </div>
           {results.map((s) => {
             const poster = tmdbPoster(s.posterPath, "w185");
             const isAdded = addedIds.has(s.tmdbId);
+            const showUnavailableBadge = onlyMine && !s.onSubscribedService;
             return (
               <div
                 key={`${s.mediaType}:${s.tmdbId}`}
@@ -183,7 +205,7 @@ export function DiscoverBox({ queueId, subscriptions }: DiscoverBoxProps) {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-semibold truncate">{s.name}</h3>
                     <span
                       className={`flex-shrink-0 text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded ${s.mediaType === "movie" ? "bg-blue-600/20 text-blue-400" : "bg-emerald-600/20 text-emerald-400"}`}
@@ -193,6 +215,11 @@ export function DiscoverBox({ queueId, subscriptions }: DiscoverBoxProps) {
                     {s.date && (
                       <span className="text-xs text-[color:var(--muted)]">
                         {s.date.slice(0, 4)}
+                      </span>
+                    )}
+                    {showUnavailableBadge && (
+                      <span className="flex-shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-[color:var(--surface-elevated)] border border-[color:var(--border)] text-[color:var(--muted)]">
+                        Not on your services
                       </span>
                     )}
                   </div>
