@@ -2,23 +2,30 @@
 
 import Image from "next/image";
 import { useState, useTransition, useRef, useEffect, useMemo } from "react";
-import { searchShows, addShow, type SearchResult } from "@/lib/shows/actions";
+import { searchShows, addShow, addShowToQueues, type SearchResult } from "@/lib/shows/actions";
 import type { FamilyTrackingInfo } from "@/lib/shows/queries";
+import type { Queue } from "@/lib/families/types";
 import { tmdbPoster } from "@/lib/tmdb/client";
 
 interface SearchBoxProps {
   queueId: string;
   trackingStatus: FamilyTrackingInfo[];
+  queues: Queue[];
 }
 
-export function SearchBox({ queueId, trackingStatus }: SearchBoxProps) {
+export function SearchBox({ queueId, trackingStatus, queues }: SearchBoxProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, startSearch] = useTransition();
   const [adding, startAdd] = useTransition();
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  // key of the result currently showing the queue picker
+  const [pickerKey, setPickerKey] = useState<string | null>(null);
+  const [pickerSelected, setPickerSelected] = useState<Set<string>>(new Set());
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const multiQueue = queues.length > 1;
 
   const trackingMap = useMemo(() => {
     const map = new Map<string, { queues: string[]; archived: boolean }>();
@@ -58,11 +65,48 @@ export function SearchBox({ queueId, trackingStatus }: SearchBoxProps) {
     };
   }, [query]);
 
+  function openPicker(key: string) {
+    setPickerKey(key);
+    setPickerSelected(new Set([queueId]));
+  }
+
+  function closePicker() {
+    setPickerKey(null);
+    setPickerSelected(new Set());
+  }
+
+  function toggleQueue(id: string) {
+    setPickerSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   function onAdd(r: SearchResult) {
     const key = `${r.mediaType}:${r.tmdbId}`;
+    if (multiQueue) {
+      openPicker(key);
+    } else {
+      startAdd(async () => {
+        try {
+          await addShow(queueId, r.tmdbId, r.mediaType);
+          setAddedIds((prev) => new Set(prev).add(key));
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Add failed");
+        }
+      });
+    }
+  }
+
+  function onConfirmAdd(r: SearchResult) {
+    const key = `${r.mediaType}:${r.tmdbId}`;
+    const selectedIds = [...pickerSelected];
+    closePicker();
     startAdd(async () => {
       try {
-        await addShow(queueId, r.tmdbId, r.mediaType);
+        await addShowToQueues(selectedIds, r.tmdbId, r.mediaType);
         setAddedIds((prev) => new Set(prev).add(key));
       } catch (e) {
         setError(e instanceof Error ? e.message : "Add failed");
@@ -90,60 +134,113 @@ export function SearchBox({ queueId, trackingStatus }: SearchBoxProps) {
           const key = `${r.mediaType}:${r.tmdbId}`;
           const isAdded = addedIds.has(key);
           const tracking = trackingMap.get(key);
+          const isPickerOpen = pickerKey === key;
 
           return (
             <li
               key={key}
-              className="flex gap-3 p-3 rounded-lg bg-[color:var(--surface)] border border-[color:var(--border)]"
+              className="flex flex-col rounded-lg bg-[color:var(--surface)] border border-[color:var(--border)] overflow-hidden"
             >
-              <div className="w-16 h-24 relative flex-shrink-0 rounded overflow-hidden bg-[color:var(--surface-elevated)]">
-                {poster && (
-                  <Image
-                    src={poster}
-                    alt={r.name}
-                    fill
-                    sizes="64px"
-                    className="object-cover"
-                  />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-medium truncate">{r.name}</h3>
-                  <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded ${r.mediaType === "movie" ? "bg-blue-600/20 text-blue-400" : "bg-emerald-600/20 text-emerald-400"}`}>
-                    {r.mediaType === "movie" ? "Movie" : "TV"}
-                  </span>
-                  {r.date && (
-                    <span className="text-xs text-[color:var(--muted)]">
-                      {r.date.slice(0, 4)}
-                    </span>
+              <div className="flex gap-3 p-3">
+                <div className="w-16 h-24 relative flex-shrink-0 rounded overflow-hidden bg-[color:var(--surface-elevated)]">
+                  {poster && (
+                    <Image
+                      src={poster}
+                      alt={r.name}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
                   )}
                 </div>
-                <p className="text-xs text-[color:var(--muted)] line-clamp-2 mt-1">
-                  {r.overview || "No description."}
-                </p>
-                {tracking && (
-                  <p className="text-[10px] mt-1.5">
-                    {tracking.archived ? (
-                      <span className="text-emerald-400">
-                        Finished in {tracking.queues.join(", ")}
-                      </span>
-                    ) : (
-                      <span className="text-amber-400">
-                        Watching in {tracking.queues.join(", ")}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium truncate">{r.name}</h3>
+                    <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded ${r.mediaType === "movie" ? "bg-blue-600/20 text-blue-400" : "bg-emerald-600/20 text-emerald-400"}`}>
+                      {r.mediaType === "movie" ? "Movie" : "TV"}
+                    </span>
+                    {r.date && (
+                      <span className="text-xs text-[color:var(--muted)]">
+                        {r.date.slice(0, 4)}
                       </span>
                     )}
+                  </div>
+                  <p className="text-xs text-[color:var(--muted)] line-clamp-2 mt-1">
+                    {r.overview || "No description."}
                   </p>
-                )}
+                  {r.subscribedProviders.length > 0 && (
+                    <p className="text-[10px] mt-1.5 text-emerald-400 font-medium">
+                      ✓ On {r.subscribedProviders.slice(0, 2).join(", ")}
+                      {r.subscribedProviders.length > 2 ? ` +${r.subscribedProviders.length - 2} more` : ""}
+                    </p>
+                  )}
+                  {tracking && (
+                    <p className="text-[10px] mt-1">
+                      {tracking.archived ? (
+                        <span className="text-emerald-400">
+                          Finished in {tracking.queues.join(", ")}
+                        </span>
+                      ) : (
+                        <span className="text-amber-400">
+                          Watching in {tracking.queues.join(", ")}
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => isPickerOpen ? closePicker() : onAdd(r)}
+                  disabled={adding || isAdded}
+                  className="self-start px-3 py-1.5 rounded text-sm bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold disabled:opacity-60 transition-colors"
+                >
+                  {isAdded ? "Added" : adding ? "…" : "Add"}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => onAdd(r)}
-                disabled={adding || isAdded}
-                className="self-start px-3 py-1.5 rounded text-sm bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold disabled:opacity-60 transition-colors"
-              >
-                {isAdded ? "Added" : adding ? "…" : "Add"}
-              </button>
+
+              {isPickerOpen && (
+                <div className="border-t border-[color:var(--border)] px-3 py-3 bg-[color:var(--surface-elevated)]">
+                  <p className="text-xs text-[color:var(--muted)] mb-2">Add to queues:</p>
+                  <div className="flex flex-col gap-1.5 mb-3">
+                    {queues.map((q) => (
+                      <label key={q.id} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={pickerSelected.has(q.id)}
+                          onChange={() => toggleQueue(q.id)}
+                          className="accent-[color:var(--accent)]"
+                        />
+                        <span className="text-sm">
+                          {q.name}
+                          {q.id === queueId && (
+                            <span className="text-[10px] text-[color:var(--muted)] ml-1">(current)</span>
+                          )}
+                        </span>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${q.type === "solo" ? "bg-[color:var(--surface)] text-[color:var(--muted)]" : "bg-purple-600/20 text-purple-400"}`}>
+                          {q.type}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onConfirmAdd(r)}
+                      disabled={adding || pickerSelected.size === 0}
+                      className="px-3 py-1.5 rounded text-sm bg-[color:var(--accent)] hover:bg-[color:var(--accent-hover)] text-white font-semibold disabled:opacity-60 transition-colors"
+                    >
+                      Add to {pickerSelected.size} queue{pickerSelected.size !== 1 ? "s" : ""}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closePicker}
+                      className="px-3 py-1.5 rounded text-sm text-[color:var(--muted)] hover:text-[color:var(--foreground)] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </li>
           );
         })}

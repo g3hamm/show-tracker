@@ -9,6 +9,7 @@ import type { MediaRowFromTmdb } from "@/lib/tmdb/mappers";
 import { emailEnabled, getResend } from "@/lib/email/client";
 import { watchedItEmail } from "@/lib/email/templates";
 import { requireQueueAccess } from "@/lib/families/actions";
+import { getFamilyByUserId, getFamilySubscriptions } from "@/lib/families/queries";
 
 async function requireUser() {
   const { userId } = await auth();
@@ -36,37 +37,86 @@ export interface SearchResult {
   overview: string;
   posterPath: string | null;
   date: string | null;
+  subscribedProviders: string[];
 }
 
 export async function searchShows(query: string): Promise<SearchResult[]> {
-  await requireUser();
+  const userId = await requireUser();
   const q = query.trim();
   if (!q) return [];
 
-  const [tvRes, movieRes] = await Promise.all([
+  const [tvRes, movieRes, family] = await Promise.all([
     tmdbSearchTv(q),
     tmdbSearchMovie(q),
+    getFamilyByUserId(userId),
   ]);
 
-  const tvResults: SearchResult[] = tvRes.results.slice(0, 10).map((r) => ({
+  type WithPopularity = Omit<SearchResult, "subscribedProviders"> & { popularity: number };
+
+  const tvResults: WithPopularity[] = tvRes.results.slice(0, 10).map((r) => ({
     tmdbId: r.id,
     mediaType: "show" as const,
     name: r.name,
     overview: r.overview,
     posterPath: r.poster_path,
     date: r.first_air_date,
+    popularity: r.popularity ?? 0,
   }));
 
-  const movieResults: SearchResult[] = movieRes.results.slice(0, 10).map((r) => ({
+  const movieResults: WithPopularity[] = movieRes.results.slice(0, 10).map((r) => ({
     tmdbId: r.id,
     mediaType: "movie" as const,
     name: r.title,
     overview: r.overview,
     posterPath: r.poster_path,
     date: r.release_date,
+    popularity: r.popularity ?? 0,
   }));
 
-  return [...tvResults, ...movieResults];
+  const combined = [...tvResults, ...movieResults].sort((a, b) => b.popularity - a.popularity);
+
+  // Get subscribed provider IDs for this user's family
+  const subscribedMap = new Map<number, string>();
+  if (family) {
+    const subs = await getFamilySubscriptions(family.id);
+    for (const s of subs) subscribedMap.set(s.provider_id, s.provider_name);
+  }
+
+  if (subscribedMap.size === 0) {
+    return combined.map(({ popularity: _, ...r }) => ({ ...r, subscribedProviders: [] }));
+  }
+
+  // Fetch watch providers for each result in parallel
+  const tmdbKey = process.env.TMDB_API_KEY ?? "";
+  const region = process.env.WATCH_REGION ?? "US";
+  const apiBase = "https://api.themoviedb.org/3";
+
+  const results = await Promise.all(
+    combined.map(async ({ popularity: _, ...r }) => {
+      try {
+        const path = r.mediaType === "movie"
+          ? `/movie/${r.tmdbId}/watch/providers`
+          : `/tv/${r.tmdbId}/watch/providers`;
+        const res = await fetch(`${apiBase}${path}?api_key=${tmdbKey}`, { next: { revalidate: 3600 } });
+        if (!res.ok) return { ...r, subscribedProviders: [] };
+        const data = await res.json();
+        const regionData = data.results?.[region] ?? {};
+        const all = [
+          ...(regionData.flatrate ?? []),
+          ...(regionData.free ?? []),
+          ...(regionData.ads ?? []),
+        ] as { provider_id: number }[];
+        const subscribedProviders = all
+          .filter((p) => subscribedMap.has(p.provider_id))
+          .map((p) => subscribedMap.get(p.provider_id)!);
+        return { ...r, subscribedProviders: [...new Set(subscribedProviders)] };
+      } catch {
+        return { ...r, subscribedProviders: [] };
+      }
+    }),
+  );
+
+  return results;
 }
 
 async function upsertCatalog(row: MediaRowFromTmdb): Promise<string> {
@@ -151,6 +201,40 @@ export async function addShow(
       recommendationNote ?? null, userId,
     ],
   });
+
+  revalidatePath("/");
+}
+
+export async function addShowToQueues(
+  queueIds: string[],
+  tmdbId: number,
+  mediaType: "show" | "movie" = "show",
+): Promise<void> {
+  const userId = await requireUser();
+  await ensureUser(userId);
+  if (queueIds.length === 0) return;
+
+  await Promise.all(queueIds.map((qid) => requireQueueAccess(qid)));
+
+  let row: MediaRowFromTmdb;
+  if (mediaType === "movie") {
+    const details = await tmdbGetMovie(tmdbId);
+    row = mapMovieDetailsToRow(details);
+  } else {
+    const details = await tmdbGetTv(tmdbId);
+    row = mapTvDetailsToRow(details);
+  }
+
+  const showId = await upsertCatalog(row);
+
+  await Promise.all(
+    queueIds.map((queueId) =>
+      getTurso().execute({
+        sql: `INSERT OR IGNORE INTO queue_shows (id, queue_id, show_id, added_by) VALUES (?, ?, ?, ?)`,
+        args: [crypto.randomUUID(), queueId, showId, userId],
+      }),
+    ),
+  );
 
   revalidatePath("/");
 }

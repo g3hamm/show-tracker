@@ -7,6 +7,7 @@ export interface TmdbSearchTvResult {
   poster_path: string | null;
   backdrop_path: string | null;
   first_air_date: string | null;
+  popularity: number;
 }
 
 export interface TmdbSearchTvResponse {
@@ -51,6 +52,7 @@ export interface TmdbSearchMovieResult {
   poster_path: string | null;
   backdrop_path: string | null;
   release_date: string | null;
+  popularity: number;
 }
 
 export interface TmdbSearchMovieResponse {

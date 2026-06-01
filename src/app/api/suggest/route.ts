@@ -143,6 +143,8 @@ export async function POST(request: Request) {
   const subscribedProviderIds: number[] = body.providerIds || [];
   const onlySubscribed: boolean = body.onlySubscribed === true && subscribedProviderIds.length > 0;
   const region = process.env.WATCH_REGION ?? "US";
+  const excludedTitles: string[] = Array.isArray(body.excludedTitles) ? body.excludedTitles : [];
+  const excludedIds = new Set<number>(Array.isArray(body.excludedIds) ? body.excludedIds : []);
 
   if (!mood || mood.length > 500) {
     return NextResponse.json(
@@ -156,13 +158,13 @@ export async function POST(request: Request) {
 
   // ── Fast path: no streaming filter ──────────────────────────────────────────
   if (!onlySubscribed) {
-    const suggestions = await askClaude(mood, 3, [], client);
+    const suggestions = await askClaude(mood, 3 + excludedIds.size, excludedTitles, client);
     const results: TmdbMatch[] = [];
 
     await Promise.all(
-      suggestions.slice(0, 3).map(async (s) => {
+      suggestions.map(async (s) => {
         const match = await tmdbSearch(s.title, s.mediaType, tmdbKey);
-        if (match) {
+        if (match && !excludedIds.has(match.id) && results.length < 3) {
           results.push({
             tmdbId: match.id,
             mediaType: s.mediaType,
@@ -177,13 +179,13 @@ export async function POST(request: Request) {
       }),
     );
 
-    return NextResponse.json({ results });
+    return NextResponse.json({ results: results.slice(0, 3) });
   }
 
   // ── Streaming-filtered path: iterate until we have 3 available results ──────
   const available: TmdbMatch[] = [];
   const fallback: TmdbMatch[] = [];
-  const triedTitles: string[] = [];
+  const triedTitles: string[] = [...excludedTitles];
 
   for (let round = 0; round < MAX_ROUNDS && available.length < 3; round++) {
     const suggestions = await askClaude(mood, BATCH_SIZE, triedTitles, client);
@@ -194,6 +196,8 @@ export async function POST(request: Request) {
       suggestions.map(async (s) => {
         const match = await tmdbSearch(s.title, s.mediaType, tmdbKey);
         if (!match) return null;
+
+        if (excludedIds.has(match.id)) return null;
 
         const titleProviderIds = await getProviderIds(match.id, s.mediaType, tmdbKey, region);
         const isAvailable = [...titleProviderIds].some((id) => subscribedSet.has(id));

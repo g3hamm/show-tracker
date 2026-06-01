@@ -171,6 +171,11 @@ export default async function ShowDetailPage({ params }: PageProps) {
           {show.archived && (
             <div className="mt-6 p-4 rounded-lg bg-[color:var(--surface)] border border-[color:var(--border)]">
               <p className="text-[10px] uppercase tracking-wider text-[color:var(--muted)] mb-2">Rating & Review</p>
+              {show.archived_at && (
+                <p className="text-xs text-[color:var(--muted)] mb-3">
+                  Watched {formatShortDate(show.archived_at.slice(0, 10))}
+                </p>
+              )}
               <StarRating showId={show.queue_show_id} rating={show.rating} review={show.review} />
             </div>
           )}

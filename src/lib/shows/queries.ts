@@ -11,7 +11,7 @@ const QUEUE_SHOW_SELECT = `
   SELECT s.*, qs.id as queue_show_id, qs.queue_id, qs.current_season,
          qs.current_episode, qs.archived, qs.rating, qs.review, qs.private,
          qs.recommended_by, qs.recommended_by_email, qs.recommendation_note,
-         qs.added_by, qs.added_at, u.display_name
+         qs.added_by, qs.added_at, qs.archived_at, u.display_name
   FROM queue_shows qs
   JOIN shows s ON qs.show_id = s.id
   LEFT JOIN users u ON qs.added_by = u.id`;
@@ -62,6 +62,7 @@ function mapRow(r: any): ShowRow {
     added_by: r.added_by ?? null,
     added_by_name: r.display_name ?? null,
     added_at: r.added_at,
+    archived_at: r.archived_at as string | null ?? null,
   };
 }
 

@@ -31,17 +31,23 @@ export function DiscoverBox({ queueId, subscriptions }: DiscoverBoxProps) {
   const [error, setError] = useState<string | null>(null);
   const [addedIds, setAddedIds] = useState<Set<number>>(new Set());
   const [adding, startAdd] = useTransition();
+  const [lastMood, setLastMood] = useState("");
+  const [seenResults, setSeenResults] = useState<Suggestion[]>([]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!mood.trim()) return;
+
+    const currentMood = mood.trim();
+    const isRetry = currentMood === lastMood && results.length > 0;
+    const seen = isRetry ? seenResults : [];
 
     setError(null);
     setResults([]);
     setSomeUnavailable(false);
     setLoading(true);
     setLoadingPhase("thinking");
-    setAddedIds(new Set());
+    if (!isRetry) setAddedIds(new Set());
 
     // Switch loading message after a moment to reflect the availability-check phase
     const phaseTimer = setTimeout(() => setLoadingPhase("checking"), 2500);
@@ -51,9 +57,11 @@ export function DiscoverBox({ queueId, subscriptions }: DiscoverBoxProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mood: mood.trim(),
+          mood: currentMood,
           onlySubscribed: onlyMine && subscriptions.length > 0,
           providerIds: onlyMine ? subscriptions.map((s) => s.providerId) : [],
+          excludedTitles: seen.map((s) => s.name),
+          excludedIds: seen.map((s) => s.tmdbId),
         }),
       });
 
@@ -66,6 +74,8 @@ export function DiscoverBox({ queueId, subscriptions }: DiscoverBoxProps) {
       if (data.results?.length > 0) {
         setResults(data.results);
         setSomeUnavailable(data.someUnavailable === true);
+        setLastMood(currentMood);
+        setSeenResults((prev) => isRetry ? [...prev, ...data.results] : data.results);
       } else {
         setError("No matches found. Try describing something different.");
       }

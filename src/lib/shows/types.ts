@@ -37,6 +37,7 @@ export interface TrackedShow extends CatalogShow {
   added_by: string | null;
   added_by_name: string | null;
   added_at: string;
+  archived_at: string | null;
 }
 
 /** @deprecated Use TrackedShow */
