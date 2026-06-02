@@ -239,6 +239,46 @@ export async function addShowToQueues(
   revalidatePath("/");
 }
 
+export async function addShowToAdditionalQueues(
+  queueShowId: string,
+  targetQueueIds: string[],
+): Promise<void> {
+  const userId = await requireUser();
+  if (targetQueueIds.length === 0) return;
+
+  const qs = await getTurso().execute({
+    sql: "SELECT show_id FROM queue_shows WHERE id = ?",
+    args: [queueShowId],
+  });
+  if (qs.rows.length === 0) throw new Error("Show not found");
+  const showId = qs.rows[0].show_id as string;
+
+  await Promise.all(targetQueueIds.map((qid) => requireQueueAccess(qid)));
+
+  await Promise.all(
+    targetQueueIds.map((queueId) =>
+      getTurso().execute({
+        sql: `INSERT OR IGNORE INTO queue_shows (id, queue_id, show_id, added_by) VALUES (?, ?, ?, ?)`,
+        args: [crypto.randomUUID(), queueId, showId, userId],
+      }),
+    ),
+  );
+
+  revalidatePath("/");
+}
+
+export async function moveShowToQueue(
+  queueShowId: string,
+  targetQueueId: string,
+): Promise<void> {
+  await addShowToAdditionalQueues(queueShowId, [targetQueueId]);
+  await getTurso().execute({
+    sql: "DELETE FROM queue_shows WHERE id = ?",
+    args: [queueShowId],
+  });
+  revalidatePath("/");
+}
+
 export async function removeShow(queueShowId: string): Promise<void> {
   await requireUser();
   await getTurso().execute({

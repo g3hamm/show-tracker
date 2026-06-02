@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { getShowById, getShowAcrossQueues } from "@/lib/shows/queries";
-import { getQueueById, getFamilySubscriptions } from "@/lib/families/queries";
+import { getQueueById, getFamilySubscriptions, getQueuesForUser } from "@/lib/families/queries";
 import { canonicalProviderName } from "@/lib/providers/normalize";
 import { tmdbPoster } from "@/lib/tmdb/client";
 import { formatShortDate, relativeDay } from "@/lib/dates";
@@ -14,6 +14,7 @@ import { StarRating } from "@/components/StarRating";
 import { WatchProviders } from "@/components/WatchProviders";
 import { CrossQueueProgress } from "@/components/CrossQueueProgress";
 import { PrivateToggle } from "@/components/PrivateToggle";
+import { QueueTransferPanel } from "@/components/QueueTransferPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,7 @@ export default async function ShowDetailPage({ params }: PageProps) {
   let queue: Awaited<ReturnType<typeof getQueueById>>;
   let crossQueue: Awaited<ReturnType<typeof getShowAcrossQueues>> = [];
   let subscriptions: Awaited<ReturnType<typeof getFamilySubscriptions>> = [];
+  let allQueues: Awaited<ReturnType<typeof getQueuesForUser>> = [];
 
   try {
     show = await getShowById(queueId, id);
@@ -40,9 +42,10 @@ export default async function ShowDetailPage({ params }: PageProps) {
 
   try {
     queue = await getQueueById(queueId);
-    [crossQueue, subscriptions] = await Promise.all([
+    [crossQueue, subscriptions, allQueues] = await Promise.all([
       queue ? getShowAcrossQueues(id, queue.family_id, queueId) : Promise.resolve([]),
       queue ? getFamilySubscriptions(queue.family_id) : Promise.resolve([]),
+      userId ? getQueuesForUser(userId) : Promise.resolve([]),
     ]);
   } catch (err) {
     console.error("[ShowDetail] secondary queries failed", { queueId, id, err: String(err) });
@@ -167,6 +170,15 @@ export default async function ShowDetailPage({ params }: PageProps) {
               <PrivateToggle queueShowId={show.queue_show_id} isPrivate={show.is_private} />
             )}
           </div>
+
+          {allQueues.length > 1 && (
+            <QueueTransferPanel
+              queueShowId={show.queue_show_id}
+              currentQueueId={queueId}
+              showName={show.name}
+              queues={allQueues}
+            />
+          )}
 
           {show.archived && (
             <div className="mt-6 p-4 rounded-lg bg-[color:var(--surface)] border border-[color:var(--border)]">
